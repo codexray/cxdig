@@ -1,0 +1,5 @@
+*.json
+*.cov
+*.html
+*.tmp
+*.exe
