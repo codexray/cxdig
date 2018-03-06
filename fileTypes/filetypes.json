@@ -2,409 +2,409 @@
     {
         "language":"conan",
         "type":"BuildSystem",
-        "fileName":["conanfile.txt", "conanfile.py", "conanenv.txt"]
+        "filesNames":["conanfile.txt", "conanfile.py", "conanenv.txt"]
     },
     {
         "language":"scons",
         "type":"BuildSystem",
-        "fileName":["sconstruct"]
+        "filesNames":["sconstruct"]
     },
     {
         "language":"premake",
         "type":"BuildSystem",
-        "fileName":["premake4.lua", "premake5.lua"]
+        "filesNames":["premake4.lua", "premake5.lua"]
     },
     {
         "language":"gulp",
         "type":"BuildSystem",
-        "fileName":["gulp.js"]
+        "filesNames":["gulp.js"]
     },
     {
         "language":"zeus",
         "type":"BuildSystem",
-        "fileName":["zeusfile.yml"]
+        "filesNames":["zeusfile.yml"]
     },
     {
         "language":"bam",
         "type":"BuildSystem",
-        "fileName":["bam.lua"]
+        "filesNames":["bam.lua"]
      },
      {
         "language":"meson",
         "type":"BuildSystem",
-        "fileName":["meson.build"]
+        "filesNames":["meson.build"]
     },
     {
         "language":"hunter",
         "type":"BuildSystem",
-        "fileName":["huntergate.cmake", "hunter.cmake"]
+        "filesNames":["huntergate.cmake", "hunter.cmake"]
     },
     {
         "language":"cget",
         "type":"BuildSystem",
-        "fileName":["requirements.txt"]
+        "filesNames":["requirements.txt"]
     },
     {
         "language":"conda",
         "type":"BuildSystem",
-        "fileName":["meta.yaml"]
+        "filesNames":["meta.yaml"]
     },
     {
         "language":"shake",
         "type":"BuildSystem",
-        "fileName":["build.hs"]
+        "filesNames":["build.hs"]
     },
     {
         "language":"gemfile",
         "type":"BuildSystem",
-        "fileName":["gemfile"]
+        "filesNames":["gemfile"]
     },
     {
         "language":"npm",
         "type":"BuildSystem",
-        "fileName":["package.json"]
+        "filesNames":["package.json"]
     },
     {
         "language":"webpack",
         "type":"BuildSystem",
-        "fileName":["webpack.config.js"]
+        "filesNames":["webpack.config.js"]
     },
     {
         "language":"bower",
         "type":"BuildSystem",
-        "fileName":["bower.json"]
+        "filesNames":["bower.json"]
     },
     {
-        "language":"Maven",
+        "language":"maven",
         "type":"BuildSystem",
-        "fileName":["pom.xml"]
+        "filesNames":["pom.xml"]
     },
     {
         "language":"cmake",
         "type":"BuildSystem",
-        "fileName":["cmakelists.txt"],
-        "fileSuffix": [".cmake", ".cmake.in"]
+        "filesNames":["cmakelists.txt"],
+        "filesSuffixes": [".cmake"]
     },
     {
         "language":"makefile",
         "type":"BuildSystem",
-        "fileName":["makefile"],
-        "fileSuffix": [".make", ".mkfile", ".mak", ".mk"]
+        "filesNames":["makefile"],
+        "filesSuffixes": [".make", ".mkfile", ".mak", ".mk"]
     },
     {
         "language":"qmake",
         "type":"BuildSystem",
-        "fileSuffix": [".pro", ".pri"]
+        "filesSuffixes": [".pro", ".pri"]
     },
     {
         "language":"visual studio",
         "type":"BuildSystem",
-        "fileSuffix": [".sln", ".vcxproj", ".vcproj", ".props"]
+        "filesSuffixes": [".sln", ".vcxproj", ".vcproj", ".props"]
     },
     {
         "language":"xcode",
         "type":"BuildSystem",
-        "fileSuffix": [".xcconfig", ".pbxproj", ".xcworkspacedata"]
+        "filesSuffixes": [".xcconfig", ".pbxproj", ".xcworkspacedata"]
     },
     {
         "language":"automake",
         "type":"BuildSystem",
-        "fileSuffix": [".am"]
+        "filesSuffixes": [".am"]
     },
     {
         "language":"qbs",
         "type":"BuildSystem",
-        "fileSuffix": [".qbs"]
+        "filesSuffixes": [".qbs"]
     },
     {
         "language":"ninja",
         "type":"BuildSystem",
-        "fileSuffix": [".ninja"]
+        "filesSuffixes": [".ninja"]
     },
     {
         "language":"vcpkg",
         "type":"BuildSystem",
-        "fileSuffix": [".vcpkg"]
+        "filesSuffixes": [".vcpkg"]
     },
     {
         "language":"boost.jam",
         "type":"BuildSystem",
-        "fileSuffix": [".jam"]
+        "filesSuffixes": [".jam"]
     },
     {
         "language":"gradle",
         "type":"BuildSystem",
-        "fileSuffix": [".gradle"]
+        "filesSuffixes": [".gradle"]
     },
     {
         "language":"tup",
         "type":"BuildSystem",
-        "fileSuffix": [".tup"]
+        "filesSuffixes": [".tup"]
     },
     {
         "language":"bazel",
         "type":"BuildSystem",
-        "fileSuffix": [".bzl"]
+        "filesSuffixes": [".bzl"]
     },
     {
         "language":"gyp",
         "type":"BuildSystem",
-        "fileSuffix": [".gyp", "gypi"]
+        "filesSuffixes": [".gyp", "gypi"]
     },
     {
         "language":"inno setup",
         "type":"BuildSystem",
-        "fileSuffix": [".iss"]
+        "filesSuffixes": [".iss"]
     },
     {
         "language":"wix",
         "type":"BuildSystem",
-        "fileSuffix": [".wixproj", ".wxs"]
+        "filesSuffixes": [".wixproj", ".wxs"]
     },
     {
         "language":"nsis",
         "type":"BuildSystem",
-        "fileSuffix": [".nsh", ".nsi"]
+        "filesSuffixes": [".nsh", ".nsi"]
     },
     {
         "language":"eslint",
         "type":"EnvConfig",
-        "filePrefix": [".eslintrc."]
+        "filesPrefixes": [".eslintrc."]
     },
     {
         "language":"travis",
         "type":"EnvConfig",
-        "fileName":[".travis.yml"]
+        "filesNames":[".travis.yml"]
     },
     {
         "language":"appveyor",
         "type":"EnvConfig",
-        "fileName":["appveyor.yml"]
+        "filesNames":["appveyor.yml"]
     },
     {
         "language":"gitlab",
         "type":"EnvConfig",
-        "fileName":[".gitlab-ci.yml"]
+        "filesNames":[".gitlab-ci.yml"]
     },
     {
         "language":"circleci",
         "type":"EnvConfig",
-        "fileName":["circle.yml"]
+        "filesNames":["circle.yml"]
     },
     {
         "language":"clangformat",
         "type":"EnvConfig",
-        "fileName":[".clang-format"]
+        "filesNames":[".clang-format"]
     },
     {
         "language":"clang_complete",
         "type":"EnvConfig",
-        "fileName":[".clang_complete"]
+        "filesNames":[".clang_complete"]
     },
     {
         "language":"editorconfig",
         "type":"EnvConfig",
-        "fileName":[".editorconfig"]
+        "filesNames":[".editorconfig"]
     },
     {
         "language":"gdbinit",
         "type":"EnvConfig",
-        "fileName":[".gdbinit"]
+        "filesNames":[".gdbinit"]
     },
     {
         "language":"yard",
         "type":"EnvConfig",
-        "fileName":[".yardopts"]
+        "filesNames":[".yardopts"]
     },
     {
         "language":"istanbul",
         "type":"EnvConfig",
-        "fileName":[".istanbul.yml"]
+        "filesNames":[".istanbul.yml"]
     },
     {
         "language":"codecov.io",
         "type":"EnvConfig",
-        "fileName":[".codecov.yml"]
+        "filesNames":[".codecov.yml"]
     },
     {
         "language":"pylint",
         "type":"EnvConfig",
-        "fileName":[".pylintrc"]
+        "filesNames":[".pylintrc"]
     },
     {
         "language":"flake8",
         "type":"EnvConfig",
-        "fileName":[".flake8"]
+        "filesNames":[".flake8"]
     },
     {
         "language":"emacs.dir-locals",
         "type":"EnvConfig",
-        "fileName":[".dir-locals.el"]
+        "filesNames":[".dir-locals.el"]
     },
     {
         "language":"doxygen",
         "type":"EnvConfig",
-        "fileName":["doxygen.config"]
+        "filesNames":["doxygen.config"]
     },
     {
         "language":"mention-bot",
         "type":"EnvConfig",
-        "fileName":[".mention-bot"]
+        "filesNames":[".mention-bot"]
     },
     {
         "language":"apache-2.0",
         "type":"License",
-        "fileName":["APACHE-2.0.txt"]
+        "filesNames":["apache-2.0.txt"]
     },
     {
-        "language":"apache-3.0",
+        "language":"agpl-3.0",
         "type":"License",
-        "fileName":["APACHE-3.0.txt"]
+        "filesNames":["gnu-agpl-3.0.txt"]
     },
   
     {
         "language":"assembly",
         "type":"Source",
-        "fileSuffix": [".asm", ".s"]
+        "filesSuffixes": [".asm", ".s"]
     },
     {
         "language":"c",
         "type":"Source",
-        "fileSuffix": [".c"]
+        "filesSuffixes": [".c"]
     },
     {
         "language":"c++",
         "type":"Source",
-        "fileSuffix": [".cpp", ".cc", "cxx", ".c++", ".h", ".hh", ".hpp", ".hh", ".hxx", ".h++", ".inc", ".inl", ".ipp", ".tcc", ".tpp", ".txx", ".moc"]
+        "filesSuffixes": [".cpp", ".cc", "cxx", ".c++", ".h", ".hpp", ".hh", ".hxx", ".h++", ".inc", ".inl", ".ipp", ".tcc", ".tpp", ".txx", ".moc"]
     },
     {
         "language":"c#",
         "type":"Source",
-        "fileSuffix": [".cs", ".csx"]
+        "filesSuffixes": [".cs", ".csx"]
     },
     {
         "language":"d",
         "type":"Source",
-        "fileSuffix": [".d", ".dd", ".di"]
+        "filesSuffixes": [".d", ".dd", ".di"]
     },
     {
         "language":"fortran",
         "type":"Source",
-        "fileSuffix": [".f", ".f03", ".f08", ".f77", ".f90", ".f95", ".for", ".fpp"]
+        "filesSuffixes": [".f", ".f03", ".f08", ".f77", ".f90", ".f95", ".for", ".fpp"]
     },
     {
         "language":"go",
         "type":"Source",
-        "fileSuffix": [".go"]
+        "filesSuffixes": [".go"]
     },
     {
         "language":"java",
         "type":"Source",
-        "fileSuffix": [".java"]
+        "filesSuffixes": [".java"]
     },
     {
         "language":"pascal",
         "type":"Source",
-        "fileSuffix": [".dfm", ".dpr", ".lpr", ".pas", ".pascal"]
+        "filesSuffixes": [".dfm", ".dpr", ".lpr", ".pas", ".pascal"]
     },
     {
         "language":"perl",
         "type":"Source",
-        "fileSuffix": [".al", ".perl", ".ph", ".pl", ".plx", ".pm", ".psgi"]
+        "filesSuffixes": [".al", ".perl", ".ph", ".pl", ".plx", ".pm", ".psgi"]
     },
     {
         "language":"php",
         "type":"Source",
-        "fileSuffix": [".aw", ".ctp", ".php", ".php3", ".php4", ".php5", ".phps", ".phpt", ".phtml"]
+        "filesSuffixes": [".aw", ".ctp", ".php", ".php3", ".php4", ".php5", ".phps", ".phpt", ".phtml"]
     },
     {
         "language":"python",
         "type":"Source",
-        "fileSuffix": [".bzl", ".gyp", ".gypi", ".lmi", ".py", ".py3", ".pyde", ".pyp", ".pyt", ".pyw", ".xpy"]
+        "filesSuffixes": [".lmi", ".py", ".py3", ".pyde", ".pyp", ".pyt", ".pyw", ".xpy"]
     },
     {
         "language":"cython",
         "type":"Source",
-        "fileSuffix": [".pyx"]
+        "filesSuffixes": [".pyx"]
     },
     {
         "language":"groovy",
         "type":"Source",
-        "fileSuffix": [".groovy", ".grt", ".gsp", ".gtpl", ".gvy"]
+        "filesSuffixes": [".groovy", ".grt", ".gsp", ".gtpl", ".gvy"]
     },
     {
         "language":"qml",
         "type":"Source",
-        "fileSuffix": [".qml"]
+        "filesSuffixes": [".qml"]
     },
     {
         "language":"r",
         "type":"Source",
-        "fileSuffix": [".r", ".rd", ".rsx"]
+        "filesSuffixes": [".r", ".rd", ".rsx"]
     },
     {
         "language":"ruby",
         "type":"Source",
-        "fileSuffix": [".eye", ".gemspec", ".god", ".irbc", ".rabl", ".rake", ".rb", ".rbuild", ".rbw", ".rbx", ".ru", ".ruby"]
+        "filesSuffixes": [".eye", ".gemspec", ".god", ".irbc", ".rabl", ".rake", ".rb", ".rbuild", ".rbw", ".rbx", ".ru", ".ruby"]
     },
     {
         "language":"rust",
         "type":"Source",
-        "fileSuffix": [".rs.in"]
+        "filesSuffixes": [".rs"]
     },
     {
         "language":"sql",
         "type":"Source",
-        "fileSuffix": [".cql", ".ddl", ".mysql", ".prc", ".sql", ".tab", ".udf", ".viw", "."]
+        "filesSuffixes": [".cql", ".ddl", ".mysql", ".prc", ".sql", ".tab", ".udf", ".viw"]
     },
     {
         "language":"visual basic",
         "type":"Source",
-        "fileSuffix": [".vb", ".vba", ".vbs"]
+        "filesSuffixes": [".vb", ".vba", ".vbs"]
     },
     {
         "language":"swig",
         "type":"Source",
-        "fileSuffix": [".i"]
+        "filesSuffixes": [".i"]
     },
     {
         "language":"idl",
         "type":"Source",
-        "fileSuffix": [".idl"]
+        "filesSuffixes": [".idl"]
     },
     {
         "language":"protocol buffer",
         "type":"Source",
-        "fileSuffix": [".proto"]
+        "filesSuffixes": [".proto"]
     },
     {
         "language":"thrift",
         "type":"Source",
-        "fileSuffix": [".thrift"]
+        "filesSuffixes": [".thrift"]
     },
     {
         "language":"flatbuffers",
         "type":"Generator",
-        "fileSuffix": [".fbs"]
+        "filesSuffixes": [".fbs"]
     },
     {
         "language":"cap'n proto",
         "type":"Generator",
-        "fileSuffix": [".capnp"]
+        "filesSuffixes": [".capnp"]
     },
     {
         "language":"lex",
         "type":"Generator",
-        "fileSuffix": [".l", ".lex", ".ll"]
+        "filesSuffixes": [".l", ".lex", ".ll"]
     },
     {
         "language":"yacc",
         "type":"Generator",
-        "fileSuffix": [".y", ".yacc", ".yxx"]
+        "filesSuffixes": [".y", ".yacc", ".yxx"]
     },
     {
         "language":"m4",
         "type":"Generator",
-        "fileSuffix": [".m4"]
+        "filesSuffixes": [".m4"]
     }
 ]
