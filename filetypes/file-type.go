@@ -1,4 +1,4 @@
-package filestypes
+package filetypes
 
 import (
 	"strings"
