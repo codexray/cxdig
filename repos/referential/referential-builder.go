@@ -5,6 +5,7 @@ import (
 
 	"path/filepath"
 
+	"codexray/cxdig/filetypes"
 	"codexray/cxdig/types"
 
 	log "github.com/sirupsen/logrus"
@@ -49,7 +50,7 @@ func (r *ReferentialBuilder) addFile(ch types.FileChange, commitID types.CommitI
 		f.Activity.UndeletionDates = append(f.Activity.UndeletionDates, act)
 		f.AuthorCommits[authorID]++
 	} else {
-		ftype, lang := types.IdentifyFileTypeAndLanguage(ch.FilePath)
+		ftype, lang := filetypes.IdentifyFileTypeAndLanguage(ch.FilePath)
 
 		r.currentFileID = r.currentFileID.Next()
 		r.files[ch.FilePath] = &types.LocalFile{
@@ -105,15 +106,15 @@ func (r *ReferentialBuilder) renameFile(ch types.FileChange, commitID types.Comm
 	}
 
 	// compare old/new file types
-	oldType, oldLang := types.IdentifyFileTypeAndLanguage(oldName)
-	newType, newLang := types.IdentifyFileTypeAndLanguage(newName)
-	if oldType != types.FileTypeUnknown &&
+	oldType, oldLang := filetypes.IdentifyFileTypeAndLanguage(oldName)
+	newType, newLang := filetypes.IdentifyFileTypeAndLanguage(newName)
+	if oldType != filetypes.FileTypeUnknown &&
 		newType != oldType &&
-		newType != types.FileTypeGenerator { // it's quite common to move a source file to a generated source file
+		newType != filetypes.FileTypeGenerator { // it's quite common to move a source file to a generated source file
 		log.WithFields(log.Fields{
 			"old-name": oldName,
 			"new-name": newName}).Warn("File type was changed by renaming")
-	} else if oldLang != types.LanguageUnknown &&
+	} else if oldLang != filetypes.LanguageUnknown &&
 		newLang != oldLang {
 		log.WithFields(log.Fields{
 			"old-name": oldName,
