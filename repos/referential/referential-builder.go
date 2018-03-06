@@ -5,7 +5,7 @@ import (
 
 	"path/filepath"
 
-	"codexray/cxdig/filetypes"
+	"codexray/cxdig/config"
 	"codexray/cxdig/types"
 
 	log "github.com/sirupsen/logrus"
@@ -15,11 +15,13 @@ import (
 type ReferentialBuilder struct {
 	currentFileID types.LocalFileID
 	files         map[string]*types.LocalFile
+	registry      *config.FileTypeRegistry
 }
 
-func NewReferentialBuilder() *ReferentialBuilder {
+func NewReferentialBuilder(fileTypeRegistry *config.FileTypeRegistry) *ReferentialBuilder {
 	return &ReferentialBuilder{
-		files: map[string]*types.LocalFile{},
+		files:    map[string]*types.LocalFile{},
+		registry: fileTypeRegistry,
 	}
 }
 
@@ -50,7 +52,7 @@ func (r *ReferentialBuilder) addFile(ch types.FileChange, commitID types.CommitI
 		f.Activity.UndeletionDates = append(f.Activity.UndeletionDates, act)
 		f.AuthorCommits[authorID]++
 	} else {
-		ftype, lang := filetypes.IdentifyFileTypeAndLanguage(ch.FilePath)
+		ftype, lang := r.registry.GetFileTypeAndLanguage(ch.FilePath)
 
 		r.currentFileID = r.currentFileID.Next()
 		r.files[ch.FilePath] = &types.LocalFile{
@@ -106,15 +108,15 @@ func (r *ReferentialBuilder) renameFile(ch types.FileChange, commitID types.Comm
 	}
 
 	// compare old/new file types
-	oldType, oldLang := filetypes.IdentifyFileTypeAndLanguage(oldName)
-	newType, newLang := filetypes.IdentifyFileTypeAndLanguage(newName)
-	if oldType != filetypes.FileTypeUnknown &&
+	oldType, oldLang := r.registry.GetFileTypeAndLanguage(oldName)
+	newType, newLang := r.registry.GetFileTypeAndLanguage(newName)
+	if oldType != types.FileTypeUnknown &&
 		newType != oldType &&
-		newType != filetypes.FileTypeGenerator { // it's quite common to move a source file to a generated source file
+		newType != types.FileTypeGenerator { // it's quite common to move a source file to a generated source file
 		log.WithFields(log.Fields{
 			"old-name": oldName,
 			"new-name": newName}).Warn("File type was changed by renaming")
-	} else if oldLang != filetypes.LanguageUnknown &&
+	} else if oldLang != types.LanguageUnknown &&
 		newLang != oldLang {
 		log.WithFields(log.Fields{
 			"old-name": oldName,
