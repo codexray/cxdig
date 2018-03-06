@@ -1,7 +1,6 @@
 package types
 
 import (
-	"codexray/cxdig/filetypes"
 	"time"
 )
 
@@ -41,15 +40,15 @@ type FileActivity struct {
 
 // LocalFile contains details about a file that exists or has existed in the repository
 type LocalFile struct {
-	ID            LocalFileID          `json:"id"`
-	LatestPath    string               `json:"latestPath"`
-	CreationDate  time.Time            `json:"creationDate"`
-	DeletionDate  *time.Time           `json:"deletionDate,omitempty"` // if != nil : file is deleted!
-	PreviousNames []FileNameInfo       `json:"previousNames,omitempty"`
-	FileType      filetypes.FileType   `json:"fileType,omitempty"`
-	Language      filetypes.LanguageID `json:"language,omitempty"`
-	Activity      FileActivity         `json:"activity,omitempty"`
-	AuthorCommits map[string]int       `json:"authorCommits,omitempty"`
+	ID            LocalFileID    `json:"id"`
+	LatestPath    string         `json:"latestPath"`
+	CreationDate  time.Time      `json:"creationDate"`
+	DeletionDate  *time.Time     `json:"deletionDate,omitempty"` // if != nil : file is deleted!
+	PreviousNames []FileNameInfo `json:"previousNames,omitempty"`
+	FileType      FileType       `json:"fileType,omitempty"`
+	Language      LanguageID     `json:"language,omitempty"`
+	Activity      FileActivity   `json:"activity,omitempty"`
+	AuthorCommits map[string]int `json:"authorCommits,omitempty"`
 }
 
 // ProjectReferential details all the files that exist or have existed in a project

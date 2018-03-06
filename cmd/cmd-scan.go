@@ -34,6 +34,8 @@ func cmdScanProject(cmd *cobra.Command, args []string) error {
 }
 
 func extractRepoCommitsAndSaveResult(repo repos.Repository) error {
+	r := config.NewFileTypeRegistry()
+	r.LoadJSONFile("../config/filetypes.json")
 	core.Infof("Processing project '%s'...", repo.Name())
 
 	fileTypes := config.NewFileTypeRegistry()

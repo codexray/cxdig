@@ -112,11 +112,11 @@ func (r *ReferentialBuilder) renameFile(ch types.FileChange, commitID types.Comm
 	newType, newLang := r.registry.GetFileTypeAndLanguage(newName)
 	if oldType != types.FileTypeUnknown &&
 		newType != oldType &&
-		newType != filetypes.FileTypeGenerator { // it's quite common to move a source file to a generated source file
+		newType != types.FileTypeGenerator { // it's quite common to move a source file to a generated source file
 		log.WithFields(log.Fields{
 			"old-name": oldName,
 			"new-name": newName}).Warn("File type was changed by renaming")
-	} else if oldLang != filetypes.LanguageUnknown &&
+	} else if oldLang != types.LanguageUnknown &&
 		newLang != oldLang {
 		log.WithFields(log.Fields{
 			"old-name": oldName,
