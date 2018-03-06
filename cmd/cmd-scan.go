@@ -35,7 +35,9 @@ func cmdScanProject(cmd *cobra.Command, args []string) error {
 
 func extractRepoCommitsAndSaveResult(repo repos.Repository) error {
 	r := config.NewFileTypeRegistry()
-	r.LoadJSONFile("../config/filetypes.json")
+	if err := r.LoadJSONFile("./config/filetypes.json"); err != nil {
+		return errors.Wrap(err, "failed to init fileTypes registry")
+	}
 	core.Infof("Processing project '%s'...", repo.Name())
 
 	commits, err := repo.ExtractCommits()
