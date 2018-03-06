@@ -1,0 +1,61 @@
+{
+	"ImportPath": "codexray/diggit",
+	"GoVersion": "go1.10",
+	"GodepVersion": "v79",
+	"Deps": [
+		{
+			"ImportPath": "github.com/inconshreveable/mousetrap",
+			"Rev": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-colorable",
+			"Comment": "v0.0.8-5-g3fa8c76",
+			"Rev": "3fa8c76f9daed4067e4a806fb7e4dc86455c6d6a"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-isatty",
+			"Comment": "v0.0.3-7-g6ca4dbf",
+			"Rev": "6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-runewidth",
+			"Comment": "v0.0.2-3-g97311d9",
+			"Rev": "97311d9f7767e3d6f422ea06661bc2c7a19e8a5d"
+		},
+		{
+			"ImportPath": "github.com/pkg/errors",
+			"Comment": "v0.8.0-9-g8842a6e",
+			"Rev": "8842a6e0cc595d1cc9d931f6c875883967280e32"
+		},
+		{
+			"ImportPath": "github.com/sirupsen/logrus",
+			"Comment": "v1.0.3-19-g95cd2b9",
+			"Rev": "95cd2b9c79aa5e72ab0bc69b7ccc2be15bf850f6"
+		},
+		{
+			"ImportPath": "github.com/spf13/cobra",
+			"Rev": "8c6fa02d2225de0f9bdcb7ca912556f68d172d8c"
+		},
+		{
+			"ImportPath": "github.com/spf13/pflag",
+			"Rev": "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "8b4580aae2a0dd0c231a45d3ccb8434ff533b840"
+		},
+		{
+			"ImportPath": "gopkg.in/cheggaaa/pb.v1",
+			"Comment": "v1.0.22",
+			"Rev": "72b964305fba1230d3d818711138195f22b9ceea"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/ssh/terminal",
+			"Rev": "94eea52f7b742c7cbe0b03b22f0c4c8631ece122"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/windows",
+			"Rev": "8b4580aae2a0dd0c231a45d3ccb8434ff533b840"
+		}
+	]
+}
