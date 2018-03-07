@@ -5,6 +5,7 @@ import (
 
 	"path/filepath"
 
+	"codexray/cxdig/config"
 	"codexray/cxdig/types"
 
 	log "github.com/sirupsen/logrus"
@@ -14,11 +15,13 @@ import (
 type ReferentialBuilder struct {
 	currentFileID types.LocalFileID
 	files         map[string]*types.LocalFile
+	registry      *config.FileTypeRegistry
 }
 
-func NewReferentialBuilder() *ReferentialBuilder {
+func NewReferentialBuilder(fileTypeRegistry *config.FileTypeRegistry) *ReferentialBuilder {
 	return &ReferentialBuilder{
-		files: map[string]*types.LocalFile{},
+		files:    map[string]*types.LocalFile{},
+		registry: fileTypeRegistry,
 	}
 }
 
@@ -49,7 +52,7 @@ func (r *ReferentialBuilder) addFile(ch types.FileChange, commitID types.CommitI
 		f.Activity.UndeletionDates = append(f.Activity.UndeletionDates, act)
 		f.AuthorCommits[authorID]++
 	} else {
-		ftype, lang := types.IdentifyFileTypeAndLanguage(ch.FilePath)
+		ftype, lang := r.registry.GetFileTypeAndLanguage(ch.FilePath)
 
 		r.currentFileID = r.currentFileID.Next()
 		r.files[ch.FilePath] = &types.LocalFile{
@@ -105,8 +108,8 @@ func (r *ReferentialBuilder) renameFile(ch types.FileChange, commitID types.Comm
 	}
 
 	// compare old/new file types
-	oldType, oldLang := types.IdentifyFileTypeAndLanguage(oldName)
-	newType, newLang := types.IdentifyFileTypeAndLanguage(newName)
+	oldType, oldLang := r.registry.GetFileTypeAndLanguage(oldName)
+	newType, newLang := r.registry.GetFileTypeAndLanguage(newName)
 	if oldType != types.FileTypeUnknown &&
 		newType != oldType &&
 		newType != types.FileTypeGenerator { // it's quite common to move a source file to a generated source file
