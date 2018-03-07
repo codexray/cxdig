@@ -5,54 +5,64 @@ import (
 	"time"
 )
 
-func FilterCommitsByStep(commits []types.CommitInfo, freq SamplingFreq, limit int) []types.CommitInfo {
-	commits = SortCommitByDateDecr(commits)
+func FilterCommitsByStep(commits []types.CommitInfo, freq SamplingFreq, limit int) []types.SampleInfo {
 	if limit == 0 {
 		limit = len(commits)
 	}
-	rtn := []types.CommitInfo{}
+	rtn := []types.SampleInfo{}
 	if freq.Unit == FreqCommit {
 		for i := 0; i < limit*freq.Value && i < len(commits); i += freq.Value {
-			rtn = append(rtn, commits[i])
+			rtn = append(rtn, types.SampleInfo{
+				DateTime: commits[i].DateTime,
+				CommitID: &commits[i].CommitID,
+			})
 		}
 	} else {
-		t := bringToLastMoment(commits[0].DateTime, freq.Unit)
+		step := bringToLastMoment(commits[0].DateTime, freq.Unit)
 		j := 0
 		for i := 0; j <= limit && i < len(commits); i++ {
-			if commits[i].DateTime.Before(t) {
-				rtn = append(rtn, commits[i])
-				j++
-				switch freq.Unit {
-				case FreqDay:
-					t = commits[i].DateTime.AddDate(0, 0, -freq.Value)
-				case FreqWeek:
-					t = commits[i].DateTime.AddDate(0, 0, -freq.Value*8)
-				case FreqMonth:
-					t = commits[i].DateTime
-					for i := 0; i < freq.Value; i++ {
-						temp := t.Month()
-						t = t.AddDate(0, -1, 0)
-						for t.Month() == temp {
-							t = t.AddDate(0, 0, -1)
-						}
-					}
-				case FreqQuarter:
-					t = commits[i].DateTime
-					for i := 0; i < freq.Value*3; i++ {
-						temp := t.Month()
-						t = t.AddDate(0, -1, 0)
-						for t.Month() == temp {
-							t = t.AddDate(0, 0, -1)
-						}
-					}
-				case FreqYear:
-					t = commits[i].DateTime.AddDate(-freq.Value, 0, 0)
+			if commits[i].DateTime.Before(step) {
+				var t time.Time
+				for t = step; commits[i].DateTime.Before(t); t = getNextStep(t, freq) {
+					rtn = append(rtn, types.SampleInfo{
+						DateTime: t,
+						CommitID: &commits[i].CommitID,
+					})
 				}
-				t = bringToLastMoment(t, freq.Unit)
+				j++
+				step = t
 			}
 		}
 	}
 	return rtn
+}
+
+func getNextStep(step time.Time, freq SamplingFreq) time.Time {
+	switch freq.Unit {
+	case FreqDay:
+		step = step.AddDate(0, 0, -freq.Value)
+	case FreqWeek:
+		step = step.AddDate(0, 0, -freq.Value*8)
+	case FreqMonth:
+		for i := 0; i < freq.Value; i++ {
+			temp := step.Month()
+			step = step.AddDate(0, -1, 0)
+			for step.Month() == temp {
+				step = step.AddDate(0, 0, -1)
+			}
+		}
+	case FreqQuarter:
+		for i := 0; i < freq.Value*3; i++ {
+			temp := step.Month()
+			step = step.AddDate(0, -1, 0)
+			for step.Month() == temp {
+				step = step.AddDate(0, 0, -1)
+			}
+		}
+	case FreqYear:
+		step = step.AddDate(-freq.Value, 0, 0)
+	}
+	return bringToLastMoment(step, freq.Unit)
 }
 
 func bringToLastMoment(t time.Time, freqUnit FreqUnit) time.Time {

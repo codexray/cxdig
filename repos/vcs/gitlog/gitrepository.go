@@ -38,18 +38,22 @@ func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, freq repos.Sampli
 	if err != nil {
 		return err
 	}
-	commits = repos.FilterCommitsByStep(commits, freq, limit)
+	commits = repos.SortCommitByDateDecr(commits)
+	samples := repos.FilterCommitsByStep(commits, freq, limit)
 	if len(commits) == 0 {
 		logrus.Warn("The filtered list of commits to sample is empty: doing nothing")
 		return nil
 	}
 
 	core.Info("Sampling repository...")
-	if tool.IsDefault {
-		return r.walkCommitsByDefault(commits, p)
-	} else {
-		return r.walkCommitsWithCommand(tool, commits, p)
+	name := r.Name()
+	if err := core.WriteJSONFile(name.String()+".[samples].json", samples); err != nil {
+		return err
 	}
+	if !tool.IsDefault {
+		return r.walkCommitsWithCommand(tool, commits, samples, p)
+	}
+	return nil
 }
 
 func (r *GitRepository) Name() repos.ProjectName {
@@ -57,24 +61,7 @@ func (r *GitRepository) Name() repos.ProjectName {
 	return repos.ProjectName(name)
 }
 
-func (r *GitRepository) walkCommitsByDefault(commits []types.CommitInfo, p core.Progress) error {
-	defer func() {
-		core.Info("Saving list of commits' sha to treat...")
-	}()
-	listSha := []types.CommitID{}
-	p.Init(len(commits))
-	defer p.Done()
-	for _, commit := range commits {
-		if p != nil {
-			p.Increment()
-		}
-		listSha = append(listSha, commit.CommitID)
-	}
-	name := r.Name()
-	return core.WriteJSONFile(name.String()+".[commitsList].json", listSha)
-}
-
-func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits []types.CommitInfo, p core.Progress) error {
+func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits []types.CommitInfo, samples []types.SampleInfo, p core.Progress) error {
 	firstCommitID := commits[0].CommitID.String()
 
 	// TODO: make sure the first commit ID is the current commit ID in the repo
@@ -84,30 +71,39 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 		ResetOnCommit(r.absPath, firstCommitID)
 	}()
 
-	p.Init(len(commits))
+	p.Init(len(samples))
 	defer p.Done()
 
+	sampleIndex := 0
 	for _, commit := range commits {
-		if p != nil {
-			p.Increment()
+		for samples[sampleIndex].CommitID == nil || (sampleIndex < len(samples) && *samples[sampleIndex].CommitID == *samples[sampleIndex+1].CommitID) {
+			sampleIndex++
 		}
-		ResetOnCommit(r.absPath, commit.CommitID.String())
+		if commit.CommitID == *samples[sampleIndex].CommitID {
+			if p != nil {
+				p.Increment()
+			}
+			ResetOnCommit(r.absPath, commit.CommitID.String())
 
-		cmd := tool.BuildCmd(r.absPath, r.Name(), commit)
-		var stderr bytes.Buffer
-		cmd.Stderr = &stderr
-		if errmsg := stderr.String(); len(errmsg) > 0 {
-			// TODO: better error handling
-			//logrus.Warn(errmsg)
-		}
+			cmd := tool.BuildCmd(r.absPath, r.Name(), commit)
+			var stderr bytes.Buffer
+			cmd.Stderr = &stderr
+			if errmsg := stderr.String(); len(errmsg) > 0 {
+				// TODO: better error handling
+				//logrus.Warn(errmsg)
+			}
 
-		// TODO: evaluate CombinedOutput()
-		out, err := cmd.Output()
-		if err != nil {
-			// TODO: better error message + use defer on ResetOnCommit
-			return errors.Wrap(err, "something wrong happen when running command on commit "+commit.CommitID.String())
+			// TODO: evaluate CombinedOutput()
+			out, err := cmd.Output()
+			if err != nil {
+				// TODO: better error message + use defer on ResetOnCommit
+				return errors.Wrap(err, "something wrong happen when running command on commit "+commit.CommitID.String())
+			}
+			logrus.Debug(string(out))
 		}
-		logrus.Debug(string(out))
+	}
+	if sampleIndex != len(samples) {
+		logrus.Panic("an error occured while treating samples. All the sample was not treated")
 	}
 	return nil
 }
