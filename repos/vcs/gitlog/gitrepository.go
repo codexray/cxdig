@@ -45,12 +45,33 @@ func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, freq repos.Sampli
 	}
 
 	core.Info("Sampling repository...")
-	return r.walkCommitsWithCommand(tool, commits, p)
+	if tool.IsDefault {
+		return r.walkCommitsByDefault(commits, p)
+	} else {
+		return r.walkCommitsWithCommand(tool, commits, p)
+	}
 }
 
 func (r *GitRepository) Name() repos.ProjectName {
 	name := filepath.Base(r.absPath)
 	return repos.ProjectName(name)
+}
+
+func (r *GitRepository) walkCommitsByDefault(commits []types.CommitInfo, p core.Progress) error {
+	defer func() {
+		core.Info("Saving list of commits' sha to treat...")
+	}()
+	listSha := []types.CommitID{}
+	p.Init(len(commits))
+	defer p.Done()
+	for _, commit := range commits {
+		if p != nil {
+			p.Increment()
+		}
+		listSha = append(listSha, commit.CommitID)
+	}
+	name := r.Name()
+	return core.WriteJSONFile(name.String()+".[commitsList].json", listSha)
 }
 
 func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits []types.CommitInfo, p core.Progress) error {

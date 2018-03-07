@@ -11,13 +11,16 @@ import (
 )
 
 type ExternalTool struct {
-	rawCmd string
+	IsDefault bool
+	rawCmd    string
 }
 
 func NewExternalTool(rawCmd string) ExternalTool {
 	// caller should validate the given string
 	if rawCmd == "" {
-		panic("the given command line template is empty")
+		return ExternalTool{
+			IsDefault: true,
+		}
 	}
 	return ExternalTool{
 		rawCmd: rawCmd,
