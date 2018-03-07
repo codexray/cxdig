@@ -74,36 +74,39 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 	p.Init(len(samples))
 	defer p.Done()
 
-	sampleIndex := 0
-	for _, commit := range commits {
-		for samples[sampleIndex].CommitID == nil || (sampleIndex < len(samples) && *samples[sampleIndex].CommitID == *samples[sampleIndex+1].CommitID) {
-			sampleIndex++
+	commitIndex := 0
+	treatment := 0
+	for _, sample := range samples {
+		if p != nil {
+			p.Increment()
 		}
-		if commit.CommitID == *samples[sampleIndex].CommitID {
-			if p != nil {
-				p.Increment()
-			}
-			ResetOnCommit(r.absPath, commit.CommitID.String())
+		for j := commitIndex; j < len(commits); j++ {
+			if commits[j].CommitID == sample.CommitID {
+				ResetOnCommit(r.absPath, commits[j].CommitID.String())
 
-			cmd := tool.BuildCmd(r.absPath, r.Name(), commit)
-			var stderr bytes.Buffer
-			cmd.Stderr = &stderr
-			if errmsg := stderr.String(); len(errmsg) > 0 {
-				// TODO: better error handling
-				//logrus.Warn(errmsg)
-			}
+				cmd := tool.BuildCmd(r.absPath, r.Name(), commits[j])
+				var stderr bytes.Buffer
+				cmd.Stderr = &stderr
+				if errmsg := stderr.String(); len(errmsg) > 0 {
+					// TODO: better error handling
+					//logrus.Warn(errmsg)
+				}
 
-			// TODO: evaluate CombinedOutput()
-			out, err := cmd.Output()
-			if err != nil {
-				// TODO: better error message + use defer on ResetOnCommit
-				return errors.Wrap(err, "something wrong happen when running command on commit "+commit.CommitID.String())
+				// TODO: evaluate CombinedOutput()
+				out, err := cmd.Output()
+				if err != nil {
+					// TODO: better error message + use defer on ResetOnCommit
+					return errors.Wrap(err, "something wrong happen when running command on commit "+commits[j].CommitID.String())
+				}
+				logrus.Debug(string(out))
+				commitIndex = j
+				treatment++
+				break
 			}
-			logrus.Debug(string(out))
 		}
 	}
-	if sampleIndex != len(samples) {
-		logrus.Panic("an error occured while treating samples. All the sample was not treated")
+	if treatment != len(samples) {
+		logrus.Panic("an error occured while treating samples. All the samples was not treated")
 	}
 	return nil
 }

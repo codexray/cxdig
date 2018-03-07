@@ -10,12 +10,15 @@ func FilterCommitsByStep(commits []types.CommitInfo, freq SamplingFreq, limit in
 		limit = len(commits)
 	}
 	rtn := []types.SampleInfo{}
+	sampleNumber := 1
 	if freq.Unit == FreqCommit {
 		for i := 0; i < limit*freq.Value && i < len(commits); i += freq.Value {
 			rtn = append(rtn, types.SampleInfo{
+				Number:   types.SampleID(sampleNumber),
 				DateTime: commits[i].DateTime,
-				CommitID: &commits[i].CommitID,
+				CommitID: commits[i].CommitID,
 			})
+			sampleNumber++
 		}
 	} else {
 		step := bringToLastMoment(commits[0].DateTime, freq.Unit)
@@ -23,11 +26,20 @@ func FilterCommitsByStep(commits []types.CommitInfo, freq SamplingFreq, limit in
 		for i := 0; j <= limit && i < len(commits); i++ {
 			if commits[i].DateTime.Before(step) {
 				var t time.Time
+				firstAdded := 0
 				for t = step; commits[i].DateTime.Before(t); t = getNextStep(t, freq) {
-					rtn = append(rtn, types.SampleInfo{
+					temp := types.SampleInfo{
+						Number:   types.SampleID(sampleNumber),
 						DateTime: t,
-						CommitID: &commits[i].CommitID,
-					})
+						CommitID: commits[i].CommitID,
+					}
+					if firstAdded == 0 {
+						firstAdded = sampleNumber
+					} else {
+						temp.AliasOf = types.SampleID(firstAdded)
+					}
+					rtn = append(rtn, temp)
+					sampleNumber++
 				}
 				j++
 				step = t
