@@ -1,3 +1,24 @@
+package config
+
+import (
+	"codexray/cxdig/types"
+	"encoding/json"
+)
+
+// GetDefaultFileTypes returns the default definition list used to identify the file types
+func GetDefaultFileTypes() []types.FileTypeInfo {
+	var result []types.FileTypeInfo
+
+	err := json.Unmarshal([]byte(defaultFileTypes), &result)
+	if err != nil {
+		panic(err) // not supposed to happen
+	}
+
+	return result
+}
+
+// embedded JSON definition list for file types
+const defaultFileTypes = `
 [
     {
         "language":"conan",
@@ -408,3 +429,4 @@
         "fileSuffixes": [".m4"]
     }
 ]
+`

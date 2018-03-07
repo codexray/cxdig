@@ -5,12 +5,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGetFileTypeAndLanguage(t *testing.T) {
 	r := NewFileTypeRegistry()
-	require.NoError(t, r.LoadJSONFile("./filetypes.json"))
 
 	typ, lang := r.GetFileTypeAndLanguage("cmakelists.txt")
 	assert.Equal(t, types.LanguageID("cmake"), lang)

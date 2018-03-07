@@ -34,11 +34,9 @@ func cmdScanProject(cmd *cobra.Command, args []string) error {
 }
 
 func extractRepoCommitsAndSaveResult(repo repos.Repository) error {
-	r := config.NewFileTypeRegistry()
-	if err := r.LoadJSONFile("./config/filetypes.json"); err != nil {
-		return errors.Wrap(err, "failed to init fileTypes registry")
-	}
 	core.Infof("Processing project '%s'...", repo.Name())
+
+	fileTypes := config.NewFileTypeRegistry()
 
 	commits, err := repo.ExtractCommits()
 	if err != nil {
@@ -50,7 +48,7 @@ func extractRepoCommitsAndSaveResult(repo repos.Repository) error {
 		return errors.Wrap(err, "failed to save commits to JSON file")
 	}
 
-	ref := referential.BuildProjectReferential(commits, r)
+	ref := referential.BuildProjectReferential(commits, fileTypes)
 	fname = fmt.Sprintf("%s.[referential].json", repo.Name())
 	core.Infof("Saving results to file '%s'", fname)
 	if err := core.WriteJSONFile(fname, ref); err != nil {

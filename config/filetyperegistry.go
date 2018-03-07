@@ -15,12 +15,16 @@ type FileTypeRegistry struct {
 	prefixMap        map[string]fileLanguageType
 }
 
-// NewFileTypeRegistry create a new fileTypeRegistry
+// NewFileTypeRegistry create a new fileTypeRegistry filled with default file types support
 func NewFileTypeRegistry() *FileTypeRegistry {
-	return &FileTypeRegistry{
+	r := &FileTypeRegistry{
 		nameAndSuffixMap: make(map[string]fileLanguageType),
 		prefixMap:        make(map[string]fileLanguageType),
 	}
+	if err := r.Load(GetDefaultFileTypes()); err != nil {
+		panic(err) // not supposed to happen
+	}
+	return r
 }
 
 type fileLanguageType struct {
@@ -28,15 +32,18 @@ type fileLanguageType struct {
 	Type     types.FileType
 }
 
-// LoadJSONFile loads the types definition from a JSON file
-func (r *FileTypeRegistry) LoadJSONFile(filePath string) error {
-	var json []types.FileTypeInfo
-	err := core.ReadJSONFile(filePath, &json)
-	if err != nil {
+// LoadFromJSONFile loads the types definition from a JSON file
+func (r *FileTypeRegistry) LoadFromJSONFile(filePath string) error {
+	var types []types.FileTypeInfo
+	if err := core.ReadJSONFile(filePath, types); err != nil {
 		return err
 	}
+	return r.Load(types)
+}
 
-	for _, value := range json {
+// Load loads the given types definition into the registry
+func (r *FileTypeRegistry) Load(types []types.FileTypeInfo) error {
+	for _, value := range types {
 		// process fileNames
 		for _, name := range value.FileName {
 			if name == "" || strings.ToLower(name) != name {
