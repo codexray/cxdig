@@ -1,7 +1,7 @@
 package repos
 
 import (
-	"codexray/cxdig/core"
+	"codexray/cxdig/types"
 	"testing"
 	"time"
 
@@ -41,77 +41,108 @@ func TestGetCommitByStep(t *testing.T) {
 		commits = append(commits, commit1, commit2)
 	}
 
+	commits = SortCommitByDateDecr(commits)
+
 	freq := SamplingFreq{
 		Value: 1,
 		Unit:  FreqDay,
 	}
 	commits2 := FilterCommitsByStep(commits, freq, 0)
 	assert.Equal(t, 366, len(commits2))
-	for i, com := range commits2 {
-		assert.Equal(t, 20, com.DateTime.Hour())
-		assert.Equal(t, len(commits)-(i*2)-1, com.Number)
-	}
+
 	freq.Value = 10
 	commits2 = FilterCommitsByStep(commits, freq, 0)
 	assert.Equal(t, 37, len(commits2))
-	for i, com := range commits2 {
-		assert.Equal(t, 20, com.DateTime.Hour())
-		assert.Equal(t, len(commits)-(i*20)-1, com.Number)
-	}
 
 	freq.Unit = FreqMonth
 	freq.Value = 1
 	commits2 = FilterCommitsByStep(commits, freq, 0)
 	assert.Equal(t, 13, len(commits2))
-	for _, com := range commits2 {
-		assert.Equal(t, 20, com.DateTime.Hour())
-	}
+
 	freq.Value = 2
 	commits2 = FilterCommitsByStep(commits, freq, 0)
 	assert.Equal(t, 7, len(commits2))
-	for _, com := range commits2 {
-		assert.Equal(t, 20, com.DateTime.Hour())
-	}
 
 	freq.Unit = FreqYear
 	freq.Value = 1
 	commits2 = FilterCommitsByStep(commits, freq, 0)
 	assert.Equal(t, 2, len(commits2))
-	for _, com := range commits2 {
-		assert.Equal(t, 20, com.DateTime.Hour())
-	}
+
 	freq.Value = 2
 	commits2 = FilterCommitsByStep(commits, freq, 0)
 	assert.Equal(t, 1, len(commits2))
-	for _, com := range commits2 {
-		assert.Equal(t, 20, com.DateTime.Hour())
-	}
 
 	freq.Unit = FreqQuarter
 	freq.Value = 1
 	commits2 = FilterCommitsByStep(commits, freq, 0)
 	assert.Equal(t, 5, len(commits2))
-	for _, com := range commits2 {
-		assert.Equal(t, 20, com.DateTime.Hour())
-	}
+
 	freq.Value = 2
 	commits2 = FilterCommitsByStep(commits, freq, 0)
 	assert.Equal(t, 3, len(commits2))
-	for _, com := range commits2 {
-		assert.Equal(t, 20, com.DateTime.Hour())
-	}
 
 	freq.Unit = FreqCommit
 	freq.Value = 10
 	commits2 = FilterCommitsByStep(commits, freq, 0)
 	assert.Equal(t, 74, len(commits2))
-	for _, com := range commits2 {
-		assert.Equal(t, 20, com.DateTime.Hour())
-	}
+
 	freq.Value = 2
 	commits2 = FilterCommitsByStep(commits, freq, 0)
 	assert.Equal(t, 366, len(commits2))
-	for _, com := range commits2 {
-		assert.Equal(t, 20, com.DateTime.Hour())
+
+	temp := []types.CommitInfo{}
+	for _, com := range commits {
+		if com.DateTime.Weekday() == time.Tuesday && com.DateTime.Month() != time.April && com.DateTime.Month() != time.May && com.DateTime.Month() != time.June {
+			temp = append(temp, com)
+		}
 	}
+	commits = temp
+
+	freq = SamplingFreq{
+		Value: 1,
+		Unit:  FreqDay,
+	}
+	commits2 = FilterCommitsByStep(commits, freq, 0)
+	assert.Equal(t, 365, len(commits2))
+
+	freq.Value = 10
+	commits2 = FilterCommitsByStep(commits, freq, 0)
+	assert.Equal(t, 37, len(commits2))
+
+	freq.Unit = FreqMonth
+	freq.Value = 1
+	commits2 = FilterCommitsByStep(commits, freq, 0)
+	assert.Equal(t, 13, len(commits2))
+
+	freq.Value = 2
+	commits2 = FilterCommitsByStep(commits, freq, 0)
+	assert.Equal(t, 7, len(commits2))
+
+	freq.Unit = FreqYear
+	freq.Value = 1
+	commits2 = FilterCommitsByStep(commits, freq, 0)
+	assert.Equal(t, 2, len(commits2))
+
+	freq.Value = 2
+	commits2 = FilterCommitsByStep(commits, freq, 0)
+	assert.Equal(t, 1, len(commits2))
+
+	freq.Unit = FreqQuarter
+	freq.Value = 1
+	commits2 = FilterCommitsByStep(commits, freq, 0)
+	assert.Equal(t, 5, len(commits2))
+
+	freq.Value = 2
+	commits2 = FilterCommitsByStep(commits, freq, 0)
+	assert.Equal(t, 3, len(commits2))
+
+	freq.Unit = FreqCommit
+	freq.Value = 10
+	commits2 = FilterCommitsByStep(commits, freq, 0)
+	assert.Equal(t, 8, len(commits2))
+
+	freq.Value = 2
+	commits2 = FilterCommitsByStep(commits, freq, 0)
+	assert.Equal(t, 40, len(commits2))
+
 }

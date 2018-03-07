@@ -1,14 +1,15 @@
 package referential
 
 import (
+	"codexray/cxdig/config"
+	"codexray/cxdig/types"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"codexray/cxdig/core"
 )
 
-var r = NewReferentialBuilder()
+var r = NewReferentialBuilder(config.NewFileTypeRegistry())
 
 func TestAddFile(t *testing.T) {
 	ch := types.FileChange{Type: types.FileChangeAdded, FilePath: "test1/path"}
@@ -52,7 +53,7 @@ func TestRenameFile(t *testing.T) {
 	assert.Panics(t, func() { r.renameFile(ch, commitID, authorID, dateTime) })
 	ch.RenamedFile = "test1Modified/path2"
 
-	r = NewReferentialBuilder()
+	r = NewReferentialBuilder(config.NewFileTypeRegistry())
 	ch.FilePath = ch.RenamedFile
 	r.addFile(ch, commitID, authorID, dateTime)
 	ch.FilePath = "test1Modified/path"
