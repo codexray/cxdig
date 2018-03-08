@@ -33,19 +33,25 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 
 	repo, err := vcs.OpenRepository(path)
 	if err != nil {
-		return err
+		core.Error(err)
+		return nil
 	}
 
 	freq, err := repos.DecodeSamplingFreq(execOpts.freq)
 	if err != nil {
-		return err
+		core.Error(err)
+		return nil
 	}
 
 	tool := repos.NewExternalTool(execOpts.cmd)
 
 	core.Infof("Sampling project '%s' with rate '%s'", repo.Name(), execOpts.freq)
 	pb := &progress.ProgressBar{}
-	return repo.SampleWithCmd(tool, freq, execOpts.limit, pb)
+	err = repo.SampleWithCmd(tool, freq, execOpts.limit, pb)
+	if err != nil {
+		core.Error(err)
+	}
+	return nil
 }
 
 func init() {

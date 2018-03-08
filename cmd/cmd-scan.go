@@ -27,10 +27,15 @@ func cmdScanProject(cmd *cobra.Command, args []string) error {
 
 	repo, err := vcs.OpenRepository(path)
 	if err != nil {
-		return err
+		core.Error(err)
+		return nil
 	}
 
-	return extractRepoCommitsAndSaveResult(repo)
+	err = extractRepoCommitsAndSaveResult(repo)
+	if err != nil {
+		core.Error(err)
+	}
+	return nil
 }
 
 func extractRepoCommitsAndSaveResult(repo repos.Repository) error {
@@ -53,7 +58,7 @@ func extractRepoCommitsAndSaveResult(repo repos.Repository) error {
 
 	ref := referential.BuildProjectReferential(commits, r)
 	core.Infof("Saving results to JSON")
-	if err := output.WriteJSONFile(repo, "[referential].json", ref); err != nil {
+	if err := output.WriteJSONFile(repo, "referential.json", ref); err != nil {
 		return errors.Wrap(err, "failed to save referential to JSON file")
 	}
 
