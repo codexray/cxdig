@@ -17,9 +17,11 @@ var sampleCmd = &cobra.Command{
 }
 
 type execOptions struct {
-	limit int
-	freq  string
-	cmd   string
+	limit  int
+	freq   string
+	cmd    string
+	input  string
+	output string
 }
 
 var execOpts execOptions
@@ -58,4 +60,6 @@ func init() {
 	sampleCmd.Flags().IntVarP(&execOpts.limit, "limit", "l", 0, "Set the number of commits used")
 	sampleCmd.Flags().StringVarP(&execOpts.freq, "freq", "f", "1w", "Set the frequence separating the commits treated (must be of the form : 10c, 2d, 1m, 3y, etc.")
 	sampleCmd.Flags().StringVarP(&execOpts.cmd, "cmd", "c", "", "Command to be executed for each sample (default give just the list of the commits'sha for the freq given")
+	sampleCmd.Flags().StringVarP(&execOpts.input, "input", "i", "", "Specify an sample file to be load in place of generate it")
+	sampleCmd.Flags().StringVarP(&execOpts.output, "output", "o", "", "Specify the name for the generated sample file")
 }
