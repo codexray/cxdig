@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"codexray/cxdig/core"
+	"codexray/cxdig/core/progress"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -9,7 +11,13 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "scanner",
 	Short: "CodeXray tool to scan source code repositories.",
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		core.SetConsoleMuting(quiet)
+		progress.SetProgressMuting(quiet)
+	},
 }
+
+var quiet bool
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 func Execute() {
@@ -25,6 +33,7 @@ func addCommands() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(scanCmd)
 	rootCmd.AddCommand(sampleCmd)
+	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "Mute progress bar and information messages, only errors are displayed")
 }
 
 /*
