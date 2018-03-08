@@ -3,6 +3,7 @@ package gitlog
 import (
 	"bytes"
 	"codexray/cxdig/core"
+	"codexray/cxdig/output"
 	"codexray/cxdig/repos"
 	"codexray/cxdig/types"
 	"path/filepath"
@@ -46,8 +47,7 @@ func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, freq repos.Sampli
 	}
 
 	core.Info("Sampling repository...")
-	name := r.Name()
-	if err := core.WriteJSONFile(name.String()+".[samples].json", samples); err != nil {
+	if err := output.WriteJSONFile(r, "samples.json", samples); err != nil {
 		return err
 	}
 	if !tool.IsDefault {

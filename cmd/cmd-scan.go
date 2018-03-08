@@ -3,10 +3,10 @@ package cmd
 import (
 	"codexray/cxdig/config"
 	"codexray/cxdig/core"
+	"codexray/cxdig/output"
 	"codexray/cxdig/repos"
 	"codexray/cxdig/repos/referential"
 	"codexray/cxdig/repos/vcs"
-	"fmt"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -47,15 +47,13 @@ func extractRepoCommitsAndSaveResult(repo repos.Repository) error {
 		return errors.Wrap(err, "failed to extract commits from the repository")
 	}
 
-	fname := fmt.Sprintf("%s.[commits].json", repo.Name())
-	if err := core.WriteJSONFile(fname, commits); err != nil {
+	if err := output.WriteJSONFile(repo, "commits.json", commits); err != nil {
 		return errors.Wrap(err, "failed to save commits to JSON file")
 	}
 
-	ref := referential.BuildProjectReferential(commits, fileTypes)
-	fname = fmt.Sprintf("%s.[referential].json", repo.Name())
-	core.Infof("Saving results to file '%s'", fname)
-	if err := core.WriteJSONFile(fname, ref); err != nil {
+	ref := referential.BuildProjectReferential(commits, r)
+	core.Infof("Saving results to JSON")
+	if err := output.WriteJSONFile(repo, "[referential].json", ref); err != nil {
 		return errors.Wrap(err, "failed to save referential to JSON file")
 	}
 
