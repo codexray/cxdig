@@ -31,8 +31,8 @@ test_cmake:
     - git clone https://github.com/Kitware/CMake --depth 120
   script:
     - ./bin/cxdig scan CMake
-    - if [ ! -f "CMake.[commits].json" ]; then echo "commits JSON file is missing" && exit 1; fi
-    - if [ ! -f "CMake.[referential].json" ]; then echo "referential JSON file is missing" && exit 1; fi
+    - if [ ! -f "CMake.cxray/commits.json" ]; then echo "commits JSON file is missing" && exit 1; fi
+    - if [ ! -f "CMake.cxray/referential.json" ]; then echo "referential JSON file is missing" && exit 1; fi
     - ./bin/cxdig sample --cmd "./bin/dumbtool --id {commit.id} --name {name} {path}" CMake --limit 100 | tee test-output.log
     #- NBRETURN=$(cat test-output.log | wc -l)
     #- if [ "$NBRETURN" != "100" ]; then echo "Found $NBRETURN lines, expected 100" && exit 1; fi
