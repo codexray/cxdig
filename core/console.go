@@ -13,5 +13,5 @@ func Infof(format string, a ...interface{}) {
 }
 
 func Error(err error) {
-	fmt.Println(err)
+	fmt.Println("Error: " + err.Error())
 }

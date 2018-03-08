@@ -5,7 +5,6 @@ import (
 	"codexray/cxdig/core/progress"
 	"codexray/cxdig/repos"
 	"codexray/cxdig/repos/vcs"
-	"errors"
 
 	"github.com/spf13/cobra"
 )
@@ -34,26 +33,29 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 
 	repo, err := vcs.OpenRepository(path)
 	if err != nil {
-		return err
+		core.Error(err)
+		return nil
 	}
 
 	freq, err := repos.DecodeSamplingFreq(execOpts.freq)
 	if err != nil {
-		return err
+		core.Error(err)
+		return nil
 	}
 
-	if execOpts.cmd == "" {
-		return errors.New("the command to be executed for each sample is missing")
-	}
 	tool := repos.NewExternalTool(execOpts.cmd)
 
 	core.Infof("Sampling project '%s' with rate '%s'", repo.Name(), execOpts.freq)
 	pb := &progress.ProgressBar{}
-	return repo.SampleWithCmd(tool, freq, execOpts.limit, pb)
+	err = repo.SampleWithCmd(tool, freq, execOpts.limit, pb)
+	if err != nil {
+		core.Error(err)
+	}
+	return nil
 }
 
 func init() {
 	sampleCmd.Flags().IntVarP(&execOpts.limit, "limit", "l", 0, "Set the number of commits used")
 	sampleCmd.Flags().StringVarP(&execOpts.freq, "freq", "f", "1w", "Set the frequence separating the commits treated (must be of the form : 10c, 2d, 1m, 3y, etc.")
-	sampleCmd.Flags().StringVarP(&execOpts.cmd, "cmd", "c", "", "command to be executed for each sample")
+	sampleCmd.Flags().StringVarP(&execOpts.cmd, "cmd", "c", "", "Command to be executed for each sample (default give just the list of the commits'sha for the freq given")
 }

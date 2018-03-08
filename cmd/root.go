@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"codexray/cxdig/core"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -16,7 +15,6 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	addCommands()
 	if err := rootCmd.Execute(); err != nil {
-		core.Error(err)
 		os.Exit(1)
 	}
 }

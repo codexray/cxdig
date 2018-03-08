@@ -3,6 +3,7 @@ package gitlog
 import (
 	"bytes"
 	"codexray/cxdig/core"
+	"codexray/cxdig/output"
 	"codexray/cxdig/repos"
 	"codexray/cxdig/types"
 	"path/filepath"
@@ -38,14 +39,21 @@ func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, freq repos.Sampli
 	if err != nil {
 		return err
 	}
-	commits = repos.FilterCommitsByStep(commits, freq, limit)
+	commits = repos.SortCommitByDateDecr(commits)
+	samples := repos.FilterCommitsByStep(commits, freq, limit)
 	if len(commits) == 0 {
 		logrus.Warn("The filtered list of commits to sample is empty: doing nothing")
 		return nil
 	}
 
 	core.Info("Sampling repository...")
-	return r.walkCommitsWithCommand(tool, commits, p)
+	if err := output.WriteJSONFile(r, "samples.json", samples); err != nil {
+		return err
+	}
+	if !tool.IsDefault {
+		return r.walkCommitsWithCommand(tool, commits, samples, p)
+	}
+	return nil
 }
 
 func (r *GitRepository) Name() repos.ProjectName {
@@ -53,7 +61,7 @@ func (r *GitRepository) Name() repos.ProjectName {
 	return repos.ProjectName(name)
 }
 
-func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits []types.CommitInfo, p core.Progress) error {
+func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits []types.CommitInfo, samples []types.SampleInfo, p core.Progress) error {
 	firstCommitID := commits[0].CommitID.String()
 
 	// TODO: make sure the first commit ID is the current commit ID in the repo
@@ -63,30 +71,42 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 		ResetOnCommit(r.absPath, firstCommitID)
 	}()
 
-	p.Init(len(commits))
+	p.Init(len(samples))
 	defer p.Done()
 
-	for _, commit := range commits {
+	commitIndex := 0
+	treatment := 0
+	for _, sample := range samples {
 		if p != nil {
 			p.Increment()
 		}
-		ResetOnCommit(r.absPath, commit.CommitID.String())
+		for j := commitIndex; j < len(commits); j++ {
+			if commits[j].CommitID == sample.CommitID {
+				ResetOnCommit(r.absPath, commits[j].CommitID.String())
 
-		cmd := tool.BuildCmd(r.absPath, r.Name(), commit)
-		var stderr bytes.Buffer
-		cmd.Stderr = &stderr
-		if errmsg := stderr.String(); len(errmsg) > 0 {
-			// TODO: better error handling
-			//logrus.Warn(errmsg)
-		}
+				cmd := tool.BuildCmd(r.absPath, r.Name(), commits[j])
+				var stderr bytes.Buffer
+				cmd.Stderr = &stderr
+				if errmsg := stderr.String(); len(errmsg) > 0 {
+					// TODO: better error handling
+					//logrus.Warn(errmsg)
+				}
 
-		// TODO: evaluate CombinedOutput()
-		out, err := cmd.Output()
-		if err != nil {
-			// TODO: better error message + use defer on ResetOnCommit
-			return errors.Wrap(err, "something wrong happen when running command on commit "+commit.CommitID.String())
+				// TODO: evaluate CombinedOutput()
+				out, err := cmd.Output()
+				if err != nil {
+					// TODO: better error message + use defer on ResetOnCommit
+					return errors.Wrap(err, "something wrong happen when running command on commit "+commits[j].CommitID.String())
+				}
+				logrus.Debug(string(out))
+				commitIndex = j
+				treatment++
+				break
+			}
 		}
-		logrus.Debug(string(out))
+	}
+	if treatment != len(samples) {
+		logrus.Panic("an error occured while treating samples. All the samples was not treated")
 	}
 	return nil
 }

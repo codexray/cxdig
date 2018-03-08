@@ -6,17 +6,15 @@ import (
 	"path/filepath"
 	"testing"
 
-	"codexray/cxdig/core"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-const repoPath = "../vcs-test/git-repository_test"
+const repoPath = "../../../test_suite/vcs-test/git-repository_test"
 
 func createTestingGitRepo(t *testing.T) {
 	cmd := exec.Command("./gitscript-test.sh")
-	path, _ := filepath.Abs("../vcs-test")
+	path, _ := filepath.Abs("../../../test_suite/vcs-test")
 	cmd.Dir = path
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -28,7 +26,7 @@ func createTestingGitRepo(t *testing.T) {
 }
 func destroyTestingGitRepo(t *testing.T) {
 	cmd := exec.Command("rm", "-rf", "./git-repository_test")
-	path, _ := filepath.Abs("../vcs-test")
+	path, _ := filepath.Abs("../../../test_suite/vcs-test")
 	cmd.Dir = path
 	cmd.Run()
 }
@@ -45,20 +43,21 @@ func TestResetOnCommit(t *testing.T) {
 	destroyTestingGitRepo(t)
 }
 
+/*
 func TestWalkCommitsWithCommand(t *testing.T) {
 	createTestingGitRepo(t)
-
+	repo
 	commits, err := ExtractCommitsFromRepository(repoPath)
 	assert.NoError(t, err)
 	assert.NotPanics(t, func() {
-		WalkCommitsWithCommand(repoPath, ProjectName("test"), "../../testingApp/testingApp {path}", commits)
+		walkCommitsWithCommand(repoPath, ProjectName("test"), "../../testingApp/testingApp {path}", commits)
 	})
 	assert.Panics(t, func() {
 		WalkCommitsWithCommand(repoPath, ProjectName("test"), "../../testingApp/WrongApp {path}", commits)
 	})
 
 	destroyTestingGitRepo(t)
-}
+}*/
 
 func TestCheckGitStatus(t *testing.T) {
 	createTestingGitRepo(t)
@@ -66,7 +65,7 @@ func TestCheckGitStatus(t *testing.T) {
 	assert.Equal(t, true, CheckGitStatus(repoPath))
 
 	cmd := exec.Command("touch", "./git-repository_test/testGitStatus.txt")
-	path, _ := filepath.Abs("../vcs-test")
+	path, _ := filepath.Abs("../../../test_suite/vcs-test")
 	cmd.Dir = path
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -94,49 +93,6 @@ func TestGetGitCommitsParents(t *testing.T) {
 	}
 
 	destroyTestingGitRepo(t)
-}
-
-func TestReplaceRawCmdTemplates(t *testing.T) {
-	str := expandExecRawCmd("tool command {path} --name {name}.{commit.count}.{commit.id}.json --testflag 'with space'",
-		"./testPath/testProjet",
-		ProjectName("testprojet"),
-		types.CommitInfo{Number: 3, CommitID: "testingShaOfCommit"})
-	assert.Equal(t, "tool command ./testPath/testProjet --name testprojet.3.testingShaOfCommit.json --testflag 'with space'", str)
-}
-
-func TestSplitCommandArgs(t *testing.T) {
-	toolname, args := splitCommandArgs("tool command ./testPath/testProjet --name testprojet.3.testingShaOfCommit.json --testflag 'with space'")
-	assert.Equal(t, "tool", toolname)
-	assert.Equal(t, "command", args[0])
-	assert.Equal(t, "./testPath/testProjet", args[1])
-	assert.Equal(t, "--name", args[2])
-	assert.Equal(t, "testprojet.3.testingShaOfCommit.json", args[3])
-	assert.Equal(t, "--testflag", args[4])
-	assert.Equal(t, "with space", args[5])
-	toolname, args = splitCommandArgs(`tool command ./testPath/testProjet --name testprojet.3.testingShaOfCommit.json --testflag "with space"`)
-	assert.Equal(t, "tool", toolname)
-	assert.Equal(t, "command", args[0])
-	assert.Equal(t, "./testPath/testProjet", args[1])
-	assert.Equal(t, "--name", args[2])
-	assert.Equal(t, "testprojet.3.testingShaOfCommit.json", args[3])
-	assert.Equal(t, "--testflag", args[4])
-	assert.Equal(t, "with space", args[5])
-	toolname, args = splitCommandArgs("tool command ./testPath/testProjet --name testprojet.3.testingShaOfCommit.json --testflag 'withoutspace'")
-	assert.Equal(t, "tool", toolname)
-	assert.Equal(t, "command", args[0])
-	assert.Equal(t, "./testPath/testProjet", args[1])
-	assert.Equal(t, "--name", args[2])
-	assert.Equal(t, "testprojet.3.testingShaOfCommit.json", args[3])
-	assert.Equal(t, "--testflag", args[4])
-	assert.Equal(t, "withoutspace", args[5])
-	toolname, args = splitCommandArgs("tool command ./testPath/testProjet --name testprojet.3.testingShaOfCommit.json --testflag withoutspace")
-	assert.Equal(t, "tool", toolname)
-	assert.Equal(t, "command", args[0])
-	assert.Equal(t, "./testPath/testProjet", args[1])
-	assert.Equal(t, "--name", args[2])
-	assert.Equal(t, "testprojet.3.testingShaOfCommit.json", args[3])
-	assert.Equal(t, "--testflag", args[4])
-	assert.Equal(t, "withoutspace", args[5])
 }
 
 func TestFindAllMergeCommit(t *testing.T) {

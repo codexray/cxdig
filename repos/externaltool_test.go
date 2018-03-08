@@ -1,6 +1,7 @@
 package repos
 
 import (
+	"codexray/cxdig/types"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,8 +24,7 @@ func TestFindFilterType(t *testing.T) {
 	assert.Equal(t, SamplingFreq{2, FreqYear}, filter)
 	assert.NoError(t, err)
 	filter, err = DecodeSamplingFreq("")
-	assert.Equal(t, SamplingFreq{1, FreqCommit}, filter)
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	filter, err = DecodeSamplingFreq("1")
 	assert.Error(t, err)
 	filter, err = DecodeSamplingFreq("m")
@@ -33,6 +33,7 @@ func TestFindFilterType(t *testing.T) {
 	assert.Error(t, err)
 }
 
+/*
 func TestFilterCommitInfo(t *testing.T) {
 	createTestingGitRepo(t)
 
@@ -44,4 +45,47 @@ func TestFilterCommitInfo(t *testing.T) {
 	}
 
 	destroyTestingGitRepo(t)
+}*/
+
+func TestReplaceRawCmdTemplates(t *testing.T) {
+	str := expandExecRawCmd("tool command {path} --name {name}.{commit.count}.{commit.id}.json --testflag 'with space'",
+		"./testPath/testProjet",
+		ProjectName("testprojet"),
+		types.CommitInfo{Number: 3, CommitID: "testingShaOfCommit"})
+	assert.Equal(t, "tool command ./testPath/testProjet --name testprojet.3.testingShaOfCommit.json --testflag 'with space'", str)
+}
+
+func TestSplitCommandArgs(t *testing.T) {
+	toolname, args := splitCommandArgs("tool command ./testPath/testProjet --name testprojet.3.testingShaOfCommit.json --testflag 'with space'")
+	assert.Equal(t, "tool", toolname)
+	assert.Equal(t, "command", args[0])
+	assert.Equal(t, "./testPath/testProjet", args[1])
+	assert.Equal(t, "--name", args[2])
+	assert.Equal(t, "testprojet.3.testingShaOfCommit.json", args[3])
+	assert.Equal(t, "--testflag", args[4])
+	assert.Equal(t, "with space", args[5])
+	toolname, args = splitCommandArgs(`tool command ./testPath/testProjet --name testprojet.3.testingShaOfCommit.json --testflag "with space"`)
+	assert.Equal(t, "tool", toolname)
+	assert.Equal(t, "command", args[0])
+	assert.Equal(t, "./testPath/testProjet", args[1])
+	assert.Equal(t, "--name", args[2])
+	assert.Equal(t, "testprojet.3.testingShaOfCommit.json", args[3])
+	assert.Equal(t, "--testflag", args[4])
+	assert.Equal(t, "with space", args[5])
+	toolname, args = splitCommandArgs("tool command ./testPath/testProjet --name testprojet.3.testingShaOfCommit.json --testflag 'withoutspace'")
+	assert.Equal(t, "tool", toolname)
+	assert.Equal(t, "command", args[0])
+	assert.Equal(t, "./testPath/testProjet", args[1])
+	assert.Equal(t, "--name", args[2])
+	assert.Equal(t, "testprojet.3.testingShaOfCommit.json", args[3])
+	assert.Equal(t, "--testflag", args[4])
+	assert.Equal(t, "withoutspace", args[5])
+	toolname, args = splitCommandArgs("tool command ./testPath/testProjet --name testprojet.3.testingShaOfCommit.json --testflag withoutspace")
+	assert.Equal(t, "tool", toolname)
+	assert.Equal(t, "command", args[0])
+	assert.Equal(t, "./testPath/testProjet", args[1])
+	assert.Equal(t, "--name", args[2])
+	assert.Equal(t, "testprojet.3.testingShaOfCommit.json", args[3])
+	assert.Equal(t, "--testflag", args[4])
+	assert.Equal(t, "withoutspace", args[5])
 }
