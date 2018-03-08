@@ -28,18 +28,7 @@ func NewGitRepository(path string) *GitRepository {
 	}
 }
 
-func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, freq repos.SamplingFreq, limit int, sampleFileName string, p core.Progress) error {
-	core.Info("Checking repository status...")
-	if !CheckGitStatus(r.absPath) {
-		return errors.New("the git repository is not clean, commit your changes and retry")
-	}
-
-	core.Info("Scanning repository...")
-	commits, err := ExtractCommitsFromRepository(r.absPath)
-	if err != nil {
-		return err
-	}
-	commits = repos.SortCommitByDateDecr(commits)
+func (r *GitRepository) ConstructSampleList(freq repos.SamplingFreq, commits []types.CommitInfo, limit int, sampleFileName string) error {
 	samples := repos.FilterCommitsByStep(commits, freq, limit)
 	if len(commits) == 0 {
 		logrus.Warn("The filtered list of commits to sample is empty: doing nothing")
@@ -56,10 +45,19 @@ func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, freq repos.Sampli
 			return err
 		}
 	}
-	if !tool.IsDefault {
-		return r.walkCommitsWithCommand(tool, commits, samples, p)
-	}
 	return nil
+}
+
+func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, commits []types.CommitInfo, sampleFileName string, p core.Progress) error {
+	core.Info("Checking repository status...")
+	if !CheckGitStatus(r.absPath) {
+		return errors.New("the git repository is not clean, commit your changes and retry")
+	}
+	var samples []types.SampleInfo
+	if err := output.ReadJSONFile(r, sampleFileName, &samples); err != nil {
+		return errors.Wrap(err, "failed to load sample file")
+	}
+	return r.walkCommitsWithCommand(tool, commits, samples, p)
 }
 
 func (r *GitRepository) Name() repos.ProjectName {
