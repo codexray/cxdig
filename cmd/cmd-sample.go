@@ -49,7 +49,7 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 
 	core.Infof("Sampling project '%s' with rate '%s'", repo.Name(), execOpts.freq)
 	pb := &progress.ProgressBar{}
-	err = repo.SampleWithCmd(tool, freq, execOpts.limit, pb)
+	err = repo.SampleWithCmd(tool, freq, execOpts.limit, execOpts.output, pb)
 	if err != nil {
 		core.Error(err)
 	}

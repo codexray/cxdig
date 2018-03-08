@@ -28,7 +28,7 @@ func NewGitRepository(path string) *GitRepository {
 	}
 }
 
-func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, freq repos.SamplingFreq, limit int, p core.Progress) error {
+func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, freq repos.SamplingFreq, limit int, sampleFileName string, p core.Progress) error {
 	core.Info("Checking repository status...")
 	if !CheckGitStatus(r.absPath) {
 		return errors.New("the git repository is not clean, commit your changes and retry")
@@ -47,8 +47,14 @@ func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, freq repos.Sampli
 	}
 
 	core.Info("Sampling repository...")
-	if err := output.WriteJSONFile(r, "samples.json", samples); err != nil {
-		return err
+	if sampleFileName == "" {
+		if err := output.WriteJSONFile(r, "samples.json", samples); err != nil {
+			return err
+		}
+	} else {
+		if err := output.WriteJSONFile(r, sampleFileName, samples); err != nil {
+			return err
+		}
 	}
 	if !tool.IsDefault {
 		return r.walkCommitsWithCommand(tool, commits, samples, p)
