@@ -64,8 +64,8 @@ func ReadJSONFile(r repos.Repository, fileName string, obj interface{}) error {
 	return nil
 }
 
-func CheckCommitsFileExistence(r repos.Repository) (bool, error) {
-	_, filePath, err := getFilePath(r, "commits.json")
+func CheckFileExistence(r repos.Repository, fileName string) (bool, error) {
+	_, filePath, err := getFilePath(r, fileName)
 	if err != nil {
 		return false, err
 	}

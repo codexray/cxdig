@@ -54,7 +54,8 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 
 	tool := repos.NewExternalTool(execOpts.cmd)
 
-	existCommitsFile, err := output.CheckCommitsFileExistence(repo)
+	core.Info("Scanning repository")
+	existCommitsFile, err := output.CheckFileExistence(repo, "commits.json")
 	if err != nil {
 		core.Error(err)
 		return nil
@@ -70,15 +71,27 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 	commits = repos.SortCommitByDateDecr(commits)
 
 	if execOpts.input == "" {
-		core.Infof("Sampling project '%s' with rate '%s'", repo.Name(), execOpts.freq)
-		err = repo.ConstructSampleList(freq, commits, execOpts.limit, execOpts.output)
+		exist, err := output.CheckFileExistence(repo, "sample.json")
 		if err != nil {
 			core.Error(err)
 			return nil
 		}
+		if !exist {
+			err = repo.ConstructSampleList(freq, commits, execOpts.limit, execOpts.output)
+			if err != nil {
+				core.Error(err)
+				return nil
+			}
+		}
+	} else {
+		exist, _ := output.CheckFileExistence(repo, execOpts.input)
+		if !exist {
+			core.Error(errors.New("the file given in input doesn't exists"))
+			return nil
+		}
 	}
 
-	if commits != nil {
+	if commits != nil && execOpts.cmd != "" {
 		pb := &progress.ProgressBar{}
 		execOpts.input = execOpts.output
 		err = repo.SampleWithCmd(tool, commits, execOpts.input, pb)

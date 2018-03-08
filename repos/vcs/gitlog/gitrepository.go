@@ -37,15 +37,9 @@ func (r *GitRepository) ConstructSampleList(freq repos.SamplingFreq, commits []t
 
 	core.Info("Sampling repository...")
 	if sampleFileName == "" {
-		if err := output.WriteJSONFile(r, "samples.json", samples); err != nil {
-			return err
-		}
-	} else {
-		if err := output.WriteJSONFile(r, sampleFileName, samples); err != nil {
-			return err
-		}
+		sampleFileName = "samples.json"
 	}
-	return nil
+	return output.WriteJSONFile(r, sampleFileName, samples)
 }
 
 func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, commits []types.CommitInfo, sampleFileName string, p core.Progress) error {
@@ -54,6 +48,9 @@ func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, commits []types.C
 		return errors.New("the git repository is not clean, commit your changes and retry")
 	}
 	var samples []types.SampleInfo
+	if sampleFileName == "" {
+		sampleFileName = "samples.json"
+	}
 	if err := output.ReadJSONFile(r, sampleFileName, &samples); err != nil {
 		return errors.Wrap(err, "failed to load sample file")
 	}
@@ -74,7 +71,7 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 		core.Info("Restoring original repository state...")
 		ResetOnCommit(r.absPath, firstCommitID)
 	}()
-
+	core.Info("Executing command on each sample")
 	p.Init(len(samples))
 	defer p.Done()
 

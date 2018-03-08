@@ -1,12 +1,5 @@
 package core
 
-import (
-	"os"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-)
-
 type jsonTest struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
@@ -15,6 +8,7 @@ type jsonTest2 struct {
 	ID   interface{} `json:"id"`
 	Name int         `json:"name"`
 }
+
 /*
 func TestJsonFile(t *testing.T) {
 	test := []jsonTest{
@@ -49,5 +43,5 @@ func TestJsonFile(t *testing.T) {
 	assert.Error(t, ReadJSONFile(path, &test3))
 	assert.Error(t, ReadJSONFile("./nofile", &test2))
 	assert.Error(t, WriteJSONFile(path+"/nofile", test))
-	os.Remove(path)*/
-}
+	os.Remove(path)
+}*/
