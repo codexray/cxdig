@@ -3,8 +3,11 @@ package cmd
 import (
 	"codexray/cxdig/core"
 	"codexray/cxdig/core/progress"
+	"codexray/cxdig/output"
 	"codexray/cxdig/repos"
 	"codexray/cxdig/repos/vcs"
+	"codexray/cxdig/types"
+	"errors"
 
 	"github.com/spf13/cobra"
 )
@@ -16,10 +19,29 @@ var sampleCmd = &cobra.Command{
 	RunE:  cmdSample,
 }
 
+const defaultSamplingFreq = "1w"
+
 type execOptions struct {
-	limit int
-	freq  string
-	cmd   string
+	limit  int
+	freq   string
+	cmd    string
+	input  string
+	output string
+}
+
+func (opts *execOptions) checkFlagCombination() error {
+	if opts.input != "" {
+		if opts.cmd == "" {
+			return errors.New("--input must be used in combination with --cmd")
+		}
+		if opts.freq != defaultSamplingFreq {
+			return errors.New("--input cannot be used in combination with --freq")
+		}
+		if opts.output != "" {
+			return errors.New("--input and --output cannot be mixed together")
+		}
+	}
+	return nil
 }
 
 var execOpts execOptions
@@ -28,6 +50,10 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 
 	path, err := getRepositoryPathFromCmdArgs(args)
 	if err != nil {
+		return err
+	}
+
+	if err = execOpts.checkFlagCombination(); err != nil {
 		return err
 	}
 
@@ -45,17 +71,58 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 
 	tool := repos.NewExternalTool(execOpts.cmd)
 
-	core.Infof("Sampling project '%s' with rate '%s'", repo.Name(), execOpts.freq)
-	pb := &progress.ProgressBar{}
-	err = repo.SampleWithCmd(tool, freq, execOpts.limit, pb)
+	core.Info("Scanning repository")
+	existCommitsFile, err := output.CheckFileExistence(repo, "commits.json")
 	if err != nil {
 		core.Error(err)
+		return nil
+	}
+	if !existCommitsFile {
+		cmdScanProject(cmd, args)
+	}
+	var commits []types.CommitInfo
+	if err = output.ReadJSONFile(repo, "commits.json", &commits); err != nil {
+		core.Error(err)
+		return nil
+	}
+	commits = repos.SortCommitByDateDecr(commits)
+
+	if execOpts.input == "" {
+		exist, err := output.CheckFileExistence(repo, "sample.json")
+		if err != nil {
+			core.Error(err)
+			return nil
+		}
+		if !exist {
+			err = repo.ConstructSampleList(freq, commits, execOpts.limit, execOpts.output)
+			if err != nil {
+				core.Error(err)
+				return nil
+			}
+		}
+	} else {
+		exist, _ := output.CheckFileExistence(repo, execOpts.input)
+		if !exist {
+			core.Error(errors.New("the file given in input doesn't exists"))
+			return nil
+		}
+	}
+
+	if commits != nil && execOpts.cmd != "" {
+		pb := &progress.ProgressBar{}
+		execOpts.input = execOpts.output
+		err = repo.SampleWithCmd(tool, commits, execOpts.input, pb)
+		if err != nil {
+			core.Error(err)
+		}
 	}
 	return nil
 }
 
 func init() {
 	sampleCmd.Flags().IntVarP(&execOpts.limit, "limit", "l", 0, "Set the number of commits used")
-	sampleCmd.Flags().StringVarP(&execOpts.freq, "freq", "f", "1w", "Set the frequence separating the commits treated (must be of the form : 10c, 2d, 1m, 3y, etc.")
+	sampleCmd.Flags().StringVarP(&execOpts.freq, "freq", "f", defaultSamplingFreq, "Set the frequence separating the commits treated (must be of the form : 10c, 2d, 1m, 3y, etc.")
 	sampleCmd.Flags().StringVarP(&execOpts.cmd, "cmd", "c", "", "Command to be executed for each sample (default give just the list of the commits'sha for the freq given")
+	sampleCmd.Flags().StringVarP(&execOpts.input, "input", "i", "", "Existing sample file to be used rather than generating a new sampling list")
+	sampleCmd.Flags().StringVarP(&execOpts.output, "output", "o", "", "Save the generated sampling list with the given name")
 }
