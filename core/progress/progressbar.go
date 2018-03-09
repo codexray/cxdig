@@ -1,6 +1,10 @@
 package progress
 
-import pb "gopkg.in/cheggaaa/pb.v1"
+import (
+	"codexray/cxdig/core"
+
+	pb "gopkg.in/cheggaaa/pb.v1"
+)
 
 // ProgressBar implements core.Progress
 type ProgressBar struct {
@@ -8,13 +12,19 @@ type ProgressBar struct {
 }
 
 func (p *ProgressBar) Init(total int) {
-	p.impl = pb.StartNew(total)
+	if !core.IsQuietModeEnabled() {
+		p.impl = pb.StartNew(total)
+	}
 }
 
 func (p *ProgressBar) Increment() {
-	p.impl.Increment()
+	if !core.IsQuietModeEnabled() {
+		p.impl.Increment()
+	}
 }
 
 func (p *ProgressBar) Done() {
-	p.impl.Finish()
+	if !core.IsQuietModeEnabled() {
+		p.impl.Finish()
+	}
 }
