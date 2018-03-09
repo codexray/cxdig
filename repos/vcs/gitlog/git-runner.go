@@ -51,7 +51,7 @@ func RunGitCommandOnDir(repoPath string, args []string, setDiff bool) []string {
 		//logrus.WithField("message", errmsg).Warn("git warning/error message")
 	}
 	if err != nil {
-		logrus.WithError(err).Panic("git log failed")
+		//logrus.WithError(err).Panic("git log failed")
 	}
 	return strings.Split(string(stdout), "\n")
 }
