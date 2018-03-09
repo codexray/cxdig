@@ -6,8 +6,8 @@ import (
 	"codexray/cxdig/output"
 	"codexray/cxdig/repos"
 	"codexray/cxdig/types"
-	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 
@@ -64,30 +64,33 @@ func (r *GitRepository) Name() repos.ProjectName {
 }
 
 func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits []types.CommitInfo, samples []types.SampleInfo, p core.Progress) error {
-	firstCommitID := commits[0].CommitID.String()
+	currentBranch, err := r.GetCurrentBranch()
+	if err != nil {
+		return err
+	}
 
 	// TODO: make sure the first commit ID is the current commit ID in the repo
 	// restore initial state of the repo
 	defer func() {
 		core.Info("Restoring original repository state...")
-		ResetOnCommit(r.absPath, firstCommitID)
+		CheckOutOnCommit(r.absPath, currentBranch)
+		ClearUntrackedFiles(r.absPath)
 	}()
 	core.Info("Executing command on each sample...")
-	p.Init(len(samples), func() {
-		core.Info("Restoring original repository state...")
-		ResetOnCommit(r.absPath, firstCommitID)
-		os.Exit(0)
-	})
+	p.Init(len(samples))
 
 	commitIndex := 0
 	treatment := 0
 	for _, sample := range samples {
 		if p != nil {
+			if p.IsCancelled() {
+				break
+			}
 			p.Increment()
 		}
 		for j := commitIndex; j < len(commits); j++ {
 			if commits[j].CommitID == sample.CommitID {
-				ResetOnCommit(r.absPath, commits[j].CommitID.String())
+				CheckOutOnCommit(r.absPath, commits[j].CommitID.String())
 
 				cmd := tool.BuildCmd(r.absPath, r.Name(), commits[j])
 				var stderr bytes.Buffer
@@ -110,9 +113,6 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 			}
 		}
 	}
-	if treatment != len(samples) {
-		logrus.Panic("an error occured while treating samples. All the samples was not treated")
-	}
 	return nil
 }
 
@@ -127,4 +127,18 @@ func (r *GitRepository) ExtractCommits() ([]types.CommitInfo, error) {
 	commits = FindMainParentOfCommits(commits, r.absPath)
 
 	return commits, nil
+}
+
+func (r *GitRepository) GetCurrentBranch() (string, error) {
+	rtn, _ := RunGitCommandOnDir(r.absPath, []string{"branch"}, false)
+	currentBranch := ""
+	for _, branch := range rtn {
+		if strings.HasPrefix(branch, "*") {
+			currentBranch = strings.TrimSpace(strings.TrimPrefix(branch, "*"))
+		}
+	}
+	if currentBranch == "" {
+		return "", errors.New("Current branch could not be found, maybe you are in 'detached HEAD' state?")
+	}
+	return currentBranch, nil
 }
