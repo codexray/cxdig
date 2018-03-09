@@ -78,7 +78,6 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 		ResetOnCommit(r.absPath, firstCommitID)
 		os.Exit(0)
 	})
-	defer p.Done()
 
 	commitIndex := 0
 	treatment := 0
