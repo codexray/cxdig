@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"codexray/cxdig/core"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -9,7 +10,13 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "scanner",
 	Short: "CodeXray tool to scan source code repositories.",
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		quietMode := (cmd.PersistentFlags().Lookup("quiet") != nil)
+		core.SetQuietMode(quietMode)
+	},
 }
+
+var quiet bool
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 func Execute() {
@@ -25,17 +32,5 @@ func addCommands() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(scanCmd)
 	rootCmd.AddCommand(sampleCmd)
+	rootCmd.PersistentFlags().BoolP("quiet", "q", false, "Quiet mode")
 }
-
-/*
-func init() {
-	rootCmd.PersistentFlags().StringP("log-level", "l", "warn", "Level of logs to report")
-	cobra.OnInitialize(func() {
-		logLevel, _ := rootCmd.PersistentFlags().GetString("log-level")
-		if err := setupLogs(logLevel); err != nil {
-			core.Error(err)
-			os.Exit(1)
-		}
-	})
-}
-*/
