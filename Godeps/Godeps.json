@@ -1,8 +1,28 @@
 {
-	"ImportPath": "codexray/diggit",
+	"ImportPath": "codexray/cxdig",
 	"GoVersion": "go1.10",
 	"GodepVersion": "v79",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
+		{
+			"ImportPath": "github.com/davecgh/go-spew/spew",
+			"Comment": "v1.1.0-9-gecdeabc",
+			"Rev": "ecdeabc65495df2dec95d7c4a4c3e021903035e5"
+		},
+		{
+			"ImportPath": "github.com/gosuri/uilive",
+			"Rev": "ac356e6e42cd31fcef8e6aec13ae9ed6fe87713e"
+		},
+		{
+			"ImportPath": "github.com/gosuri/uiprogress",
+			"Rev": "d0567a9d84a1c40dd7568115ea66f4887bf57b33"
+		},
+		{
+			"ImportPath": "github.com/gosuri/uiprogress/util/strutil",
+			"Rev": "d0567a9d84a1c40dd7568115ea66f4887bf57b33"
+		},
 		{
 			"ImportPath": "github.com/inconshreveable/mousetrap",
 			"Rev": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
@@ -28,6 +48,11 @@
 			"Rev": "8842a6e0cc595d1cc9d931f6c875883967280e32"
 		},
 		{
+			"ImportPath": "github.com/pmezard/go-difflib/difflib",
+			"Comment": "v1.0.0",
+			"Rev": "792786c7400a136282c1664665ae0a8db921c6c2"
+		},
+		{
 			"ImportPath": "github.com/sirupsen/logrus",
 			"Comment": "v1.0.3-19-g95cd2b9",
 			"Rev": "95cd2b9c79aa5e72ab0bc69b7ccc2be15bf850f6"
@@ -41,21 +66,31 @@
 			"Rev": "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
 		},
 		{
-			"ImportPath": "golang.org/x/sys/unix",
-			"Rev": "8b4580aae2a0dd0c231a45d3ccb8434ff533b840"
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Comment": "v1.1.4-72-g2aa2c17",
+			"Rev": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f"
 		},
 		{
-			"ImportPath": "gopkg.in/cheggaaa/pb.v1",
-			"Comment": "v1.0.22",
-			"Rev": "72b964305fba1230d3d818711138195f22b9ceea"
+			"ImportPath": "github.com/stretchr/testify/require",
+			"Comment": "v1.1.4-72-g2aa2c17",
+			"Rev": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/ssh/terminal",
 			"Rev": "94eea52f7b742c7cbe0b03b22f0c4c8631ece122"
 		},
 		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "8b4580aae2a0dd0c231a45d3ccb8434ff533b840"
+		},
+		{
 			"ImportPath": "golang.org/x/sys/windows",
 			"Rev": "8b4580aae2a0dd0c231a45d3ccb8434ff533b840"
+		},
+		{
+			"ImportPath": "gopkg.in/cheggaaa/pb.v1",
+			"Comment": "v1.0.22",
+			"Rev": "72b964305fba1230d3d818711138195f22b9ceea"
 		}
 	]
 }
