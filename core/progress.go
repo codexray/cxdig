@@ -4,4 +4,5 @@ type Progress interface {
 	Init(total int)
 	Increment()
 	Done()
+	Cancel()
 }
