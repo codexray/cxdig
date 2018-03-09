@@ -54,13 +54,13 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 
 	tool := repos.NewExternalTool(execOpts.cmd)
 
-	core.Info("Scanning repository...")
 	existCommitsFile, err := output.CheckFileExistence(repo, "commits.json")
 	if err != nil {
 		core.Error(err)
 		return nil
 	}
 	if !existCommitsFile {
+		core.Info("Scanning repository...")
 		cmdScanProject(cmd, args)
 	}
 	var commits []types.CommitInfo
@@ -71,7 +71,7 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 	commits = repos.SortCommitByDateDecr(commits)
 
 	if execOpts.input == "" {
-		exist, err := output.CheckFileExistence(repo, "sample."+freq.String()+".json")
+		exist, err := output.CheckFileExistence(repo, "samples."+freq.String()+".json")
 		if err != nil {
 			core.Error(err)
 			return nil
