@@ -15,6 +15,7 @@ func (p *ProjectName) String() string {
 // Repository interface is used to manipulate a source code repository versioned under a particular CVS
 type Repository interface {
 	Name() ProjectName
-	SampleWithCmd(tool ExternalTool, freq SamplingFreq, limit int, p core.Progress) error
+	ConstructSampleList(freq SamplingFreq, commits []types.CommitInfo, limit int, sampleFileName string) error
+	SampleWithCmd(tool ExternalTool, freq SamplingFreq, commits []types.CommitInfo, sampleFileName string, p core.Progress) error
 	ExtractCommits() ([]types.CommitInfo, error)
 }

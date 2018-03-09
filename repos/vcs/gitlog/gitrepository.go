@@ -28,18 +28,7 @@ func NewGitRepository(path string) *GitRepository {
 	}
 }
 
-func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, freq repos.SamplingFreq, limit int, p core.Progress) error {
-	core.Info("Checking repository status...")
-	if !CheckGitStatus(r.absPath) {
-		return errors.New("the git repository is not clean, commit your changes and retry")
-	}
-
-	core.Info("Scanning repository...")
-	commits, err := ExtractCommitsFromRepository(r.absPath)
-	if err != nil {
-		return err
-	}
-	commits = repos.SortCommitByDateDecr(commits)
+func (r *GitRepository) ConstructSampleList(freq repos.SamplingFreq, commits []types.CommitInfo, limit int, sampleFileName string) error {
 	samples := repos.FilterCommitsByStep(commits, freq, limit)
 	if len(commits) == 0 {
 		logrus.Warn("The filtered list of commits to sample is empty: doing nothing")
@@ -47,13 +36,25 @@ func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, freq repos.Sampli
 	}
 
 	core.Info("Sampling repository...")
-	if err := output.WriteJSONFile(r, "samples.json", samples); err != nil {
-		return err
+	if sampleFileName == "" {
+		sampleFileName = "samples." + freq.String() + ".json"
 	}
-	if !tool.IsDefault {
-		return r.walkCommitsWithCommand(tool, commits, samples, p)
+	return output.WriteJSONFile(r, sampleFileName, samples)
+}
+
+func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, freq repos.SamplingFreq, commits []types.CommitInfo, sampleFileName string, p core.Progress) error {
+	core.Info("Checking repository status...")
+	if !CheckGitStatus(r.absPath) {
+		return errors.New("the git repository is not clean, commit your changes and retry")
 	}
-	return nil
+	var samples []types.SampleInfo
+	if sampleFileName == "" {
+		sampleFileName = "samples." + freq.String() + ".json"
+	}
+	if err := output.ReadJSONFile(r, sampleFileName, &samples); err != nil {
+		return errors.Wrap(err, "failed to load sample file")
+	}
+	return r.walkCommitsWithCommand(tool, commits, samples, p)
 }
 
 func (r *GitRepository) Name() repos.ProjectName {
@@ -70,7 +71,7 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 		core.Info("Restoring original repository state...")
 		ResetOnCommit(r.absPath, firstCommitID)
 	}()
-
+	core.Info("Executing command on each sample...")
 	p.Init(len(samples))
 	defer p.Done()
 
