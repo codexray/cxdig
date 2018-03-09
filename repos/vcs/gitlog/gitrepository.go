@@ -6,6 +6,7 @@ import (
 	"codexray/cxdig/output"
 	"codexray/cxdig/repos"
 	"codexray/cxdig/types"
+	"os"
 	"path/filepath"
 
 	"github.com/sirupsen/logrus"
@@ -72,7 +73,11 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 		ResetOnCommit(r.absPath, firstCommitID)
 	}()
 	core.Info("Executing command on each sample...")
-	p.Init(len(samples))
+	p.Init(len(samples), func() {
+		core.Info("Restoring original repository state...")
+		ResetOnCommit(r.absPath, firstCommitID)
+		os.Exit(0)
+	})
 	defer p.Done()
 
 	commitIndex := 0

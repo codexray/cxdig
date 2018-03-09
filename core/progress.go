@@ -1,7 +1,8 @@
 package core
 
 type Progress interface {
-	Init(total int)
+	Init(total int, cancel func())
 	Increment()
 	Done()
+	Cancel()
 }
