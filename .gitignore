@@ -4,5 +4,4 @@
 *.tmp
 *.exe
 
-!filetypes.json
 cxdig
