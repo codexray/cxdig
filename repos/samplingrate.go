@@ -14,6 +14,25 @@ type SamplingFreq struct {
 	Unit  FreqUnit
 }
 
+func (freq *SamplingFreq) String() string {
+	var unit string
+	switch freq.Unit {
+	case FreqCommit:
+		unit = "c"
+	case FreqDay:
+		unit = "d"
+	case FreqWeek:
+		unit = "w"
+	case FreqMonth:
+		unit = "m"
+	case FreqQuarter:
+		unit = "q"
+	case FreqYear:
+		unit = "y"
+	}
+	return strconv.Itoa(freq.Value) + unit
+}
+
 const (
 	FreqCommit  = FreqUnit("commit")
 	FreqDay     = FreqUnit("day")
