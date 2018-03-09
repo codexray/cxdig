@@ -46,7 +46,7 @@ func (r *GitRepository) ConstructSampleList(freq repos.SamplingFreq, commits []t
 func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, freq repos.SamplingFreq, commits []types.CommitInfo, sampleFileName string, p core.Progress) error {
 	core.Info("Checking repository status...")
 	if !CheckGitStatus(r.absPath) {
-		return errors.New("the git repository is not clean, commit your changes and retry")
+		return errors.New("the git repository is not clean, commit your changes or track untracked files and retry")
 	}
 	var samples []types.SampleInfo
 	if sampleFileName == "" {
