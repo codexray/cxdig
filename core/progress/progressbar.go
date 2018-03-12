@@ -4,6 +4,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+import (
+	"codexray/cxdig/core"
+	"os"
+	"os/signal"
 
 	pb "github.com/gosuri/uiprogress"
 )
@@ -40,6 +44,9 @@ func (p *ProgressBar) Init(total int) {
 }
 
 func (p *ProgressBar) Increment() {
+	if !core.IsQuietModeEnabled() {
+		p.impl.Increment()
+	}
 	if !p.isCancelled {
 		p.Impl.Incr()
 	}
