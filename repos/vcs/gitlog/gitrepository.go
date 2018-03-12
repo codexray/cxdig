@@ -73,8 +73,13 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 	// restore initial state of the repo
 	defer func() {
 		core.Info("Restoring original repository state...")
-		CheckOutOnCommit(r.absPath, currentBranch)
-		ClearUntrackedFiles(r.absPath)
+		_, err := CheckOutOnCommit(r.absPath, currentBranch)
+		if err != nil {
+			panic(err)
+		}
+		if err = ClearUntrackedFiles(r.absPath); err != nil {
+			panic(err)
+		}
 	}()
 	core.Info("Executing command on each sample...")
 	p.Init(len(samples))
@@ -95,10 +100,6 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 				cmd := tool.BuildCmd(r.absPath, r.Name(), commits[j])
 				var stderr bytes.Buffer
 				cmd.Stderr = &stderr
-				if errmsg := stderr.String(); len(errmsg) > 0 {
-					// TODO: better error handling
-					//logrus.Warn(errmsg)
-				}
 
 				// TODO: evaluate CombinedOutput()
 				out, err := cmd.Output()

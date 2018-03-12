@@ -35,11 +35,14 @@ func (p *ProgressBar) Init(total int) {
 	go func() {
 		<-c
 		p.isCancelled = true
+		pb.Stop()
 	}()
 }
 
 func (p *ProgressBar) Increment() {
-	p.Impl.Incr()
+	if !p.isCancelled {
+		p.Impl.Incr()
+	}
 }
 
 func (p *ProgressBar) Done() {
