@@ -7,12 +7,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var quietMode bool
+
 var rootCmd = &cobra.Command{
 	Use:   "scanner",
 	Short: "CodeXray tool to scan source code repositories.",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		quietMode := (cmd.PersistentFlags().Lookup("quiet") != nil)
-		core.SetQuietMode(quietMode)
+		core.SetQuietMode(true)
 	},
 }
 
@@ -32,5 +33,5 @@ func addCommands() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(scanCmd)
 	rootCmd.AddCommand(sampleCmd)
-	rootCmd.PersistentFlags().BoolP("quiet", "q", false, "Quiet mode")
+	rootCmd.PersistentFlags().BoolVarP(&quietMode, "quiet", "q", false, "Quiet mode")
 }

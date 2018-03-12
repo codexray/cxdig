@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -14,13 +15,21 @@ import (
 // querying the details of the source code changes (which are costly to retrieve)
 func RunFullGitLogExtractionWithoutFileDiff(repoPath string) []string {
 	args := []string{"log", "--name-status", "--date=rfc", "--all"}
-	return RunGitCommandOnDir(repoPath, args, true)
+	rtn, err := RunGitCommandOnDir(repoPath, args, true)
+	if err != nil {
+		logrus.Panic(errors.Wrap(err, "failed to execute git command"))
+	}
+	return rtn
 }
 
 // RunSingleCommitDiffExtraction extracts the git log for a single commit with inclusion of the diff
 func RunSingleCommitDiffExtraction(repoPath string, commitID types.CommitID) []string {
 	args := []string{"log", "-p", "--ignore-all-space", "-n", "1", commitID.String()}
-	return RunGitCommandOnDir(repoPath, args, true)
+	rtn, err := RunGitCommandOnDir(repoPath, args, true)
+	if err != nil {
+		logrus.Panic(errors.Wrap(err, "failed to execute git command"))
+	}
+	return rtn
 }
 
 // Set diff.renameLimit to avoid the following error:
@@ -34,7 +43,7 @@ func setGitDiffRenameLimit(repoPath string) {
 	}
 }
 
-func RunGitCommandOnDir(repoPath string, args []string, setDiff bool) []string {
+func RunGitCommandOnDir(repoPath string, args []string, setDiff bool) ([]string, error) {
 	if setDiff {
 		setGitDiffRenameLimit(repoPath)
 	}
@@ -51,13 +60,21 @@ func RunGitCommandOnDir(repoPath string, args []string, setDiff bool) []string {
 		//logrus.WithField("message", errmsg).Warn("git warning/error message")
 	}
 	if err != nil {
-		logrus.WithError(err).Panic("git log failed")
+		return nil, err
 	}
-	return strings.Split(string(stdout), "\n")
+	return strings.Split(string(stdout), "\n"), nil
 }
 
-func ResetOnCommit(repoPath string, IDCommit string) []string {
-	return RunGitCommandOnDir(repoPath, []string{"reset", "--hard", IDCommit}, true)
+func CheckOutOnCommit(repoPath string, IDCommit string) ([]string, error) {
+	return RunGitCommandOnDir(repoPath, []string{"checkout", "-f", IDCommit}, true)
+}
+
+func ClearUntrackedFiles(repoPath string) error {
+	_, err := RunGitCommandOnDir(repoPath, []string{"clean", "-fd"}, true)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func CheckGitStatus(repoPath string) bool {
@@ -65,7 +82,7 @@ func CheckGitStatus(repoPath string) bool {
 	if err != nil {
 		logrus.Panic("An error occured while trying to check git status of the repo, repository " + repoPath + " not exists")
 	}
-	out := RunGitCommandOnDir(repoPath, []string{"status", "-s"}, false)
+	out, _ := RunGitCommandOnDir(repoPath, []string{"status", "-s"}, false)
 	if len(out) == 1 {
 		if out[0] == "" {
 			return true
@@ -76,7 +93,7 @@ func CheckGitStatus(repoPath string) bool {
 
 func GetGitCommitsParents(commits []types.CommitInfo, repopath string) []types.CommitInfo {
 	args := []string{"rev-list", "--all", "--parents"}
-	rtn := RunGitCommandOnDir(repopath, args, true)
+	rtn, _ := RunGitCommandOnDir(repopath, args, true)
 	parentMap := make(map[string][]string)
 	for _, line := range rtn {
 		splittedLine := strings.Split(line, " ")
@@ -101,7 +118,7 @@ func FindMainParentOfCommits(commits []types.CommitInfo, repopath string) []type
 	mainParent := make(map[string]string)
 	for _, commit := range mergeCommits {
 		args := []string{"log", "--oneline", "--first-parent", "-n", "2", "--no-abbrev", commit}
-		rtn := RunGitCommandOnDir(repopath, args, true)
+		rtn, _ := RunGitCommandOnDir(repopath, args, true)
 		if len(rtn) < 2 {
 			logrus.Warning("A merge commit has no parent")
 		} else {
@@ -125,7 +142,7 @@ func FindMainParentOfCommits(commits []types.CommitInfo, repopath string) []type
 
 func FindAllMergeCommit(repopath string) []string {
 	args := []string{"log", "--merges", "--oneline", "--no-abbrev"}
-	rtn := RunGitCommandOnDir(repopath, args, true)
+	rtn, _ := RunGitCommandOnDir(repopath, args, true)
 	mergeCommits := []string{}
 	for _, line := range rtn {
 		if line != "" {
