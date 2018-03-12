@@ -13,7 +13,7 @@ var rootCmd = &cobra.Command{
 	Use:   "scanner",
 	Short: "CodeXray tool to scan source code repositories.",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		core.SetQuietMode(true)
+		core.SetQuietMode(quietMode)
 	},
 }
 

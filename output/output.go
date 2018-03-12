@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -80,6 +81,9 @@ func getFilePath(r repos.Repository, fileName string) (string, string, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return "", "", err
+	}
+	if cwd == r.GetAbsPath() {
+		cwd = path.Dir(cwd)
 	}
 	repoName := r.Name()
 	cxRootDir := filepath.Join(cwd, repoName.String()+".cxray")

@@ -62,6 +62,9 @@ func (r *GitRepository) Name() repos.ProjectName {
 	name := filepath.Base(r.absPath)
 	return repos.ProjectName(name)
 }
+func (r *GitRepository) GetAbsPath() string {
+	return r.absPath
+}
 
 func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits []types.CommitInfo, samples []types.SampleInfo, p core.Progress) error {
 	currentBranch, err := r.GetCurrentBranch()
