@@ -72,6 +72,7 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 	// TODO: make sure the first commit ID is the current commit ID in the repo
 	// restore initial state of the repo
 	defer func() {
+		p.Done()
 		core.Info("Restoring original repository state...")
 		_, err := CheckOutOnCommit(r.absPath, currentBranch)
 		if err != nil {
