@@ -19,4 +19,5 @@ type Repository interface {
 	SampleWithCmd(tool ExternalTool, freq SamplingFreq, commits []types.CommitInfo, sampleFileName string, p core.Progress) error
 	ExtractCommits() ([]types.CommitInfo, error)
 	GetAbsPath() string
+	CheckIgnoredFilesExistence() error
 }

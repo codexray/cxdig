@@ -1,11 +1,13 @@
 package gitlog
 
 import (
+	"bufio"
 	"bytes"
 	"codexray/cxdig/core"
 	"codexray/cxdig/output"
 	"codexray/cxdig/repos"
 	"codexray/cxdig/types"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -146,4 +148,27 @@ func (r *GitRepository) GetCurrentBranch() (string, error) {
 		return "", errors.New("Current branch could not be found, maybe you are in 'detached HEAD' state?")
 	}
 	return currentBranch, nil
+}
+
+func (r *GitRepository) CheckIgnoredFilesExistence() error {
+	output, err := RunGitCommandOnDir(r.absPath, []string{"clean", "-ndX"}, false)
+	if err != nil {
+		return err
+	}
+	if len(output) < 1 || output[0] == "" {
+		return nil
+	} else {
+		core.Warn(`Gitignored files are presents in the repo given, they will be deleted during the sampling process.
+Continue? (y/n)`)
+		reader := bufio.NewReader(os.Stdin)
+		answer := ""
+		for strings.ToLower(answer) != "y" && strings.ToLower(answer) != "n" {
+			answer, _ = reader.ReadString('\n')
+			answer = strings.TrimSuffix(answer, "\n")
+		}
+		if strings.ToLower(answer) == "n" {
+			os.Exit(0)
+		}
+	}
+	return nil
 }

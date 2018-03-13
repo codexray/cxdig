@@ -69,6 +69,12 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	err = repo.CheckIgnoredFilesExistence()
+	if err != nil {
+		core.Error(err)
+		return nil
+	}
+
 	tool := repos.NewExternalTool(execOpts.cmd)
 
 	existCommitsFile, err := output.CheckFileExistence(repo, "commits.json")
