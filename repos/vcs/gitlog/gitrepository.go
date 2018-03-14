@@ -115,7 +115,7 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 
 				// TODO: evaluate CombinedOutput()
 				out, err := cmd.Output()
-				if err != nil {
+				if err != nil && !p.IsCancelled() {
 					// TODO: better error message + use defer on ResetOnCommit
 					return errors.Wrap(err, "something wrong happen when running command on commit "+commits[j].CommitID.String())
 				}
