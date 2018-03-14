@@ -35,11 +35,10 @@ func (tool *ExternalTool) BuildCmd(repoPath string, name ProjectName, commit typ
 
 func expandExecRawCmd(rawcmd string, path string, name ProjectName, commit types.CommitInfo, rate SamplingRate) string {
 	rawcmd = strings.Replace(rawcmd, "{path}", path, -1)
-	rawcmd = strings.Replace(rawcmd, "{commit.count}", strconv.Itoa(commit.Number), -1)
+	rawcmd = strings.Replace(rawcmd, "{commit.number}", strconv.Itoa(commit.Number), -1)
 	rawcmd = strings.Replace(rawcmd, "{commit.id}", commit.CommitID.String(), -1)
 	rawcmd = strings.Replace(rawcmd, "{name}", name.String(), -1)
-	rawcmd = strings.Replace(rawcmd, "{rate}", rate.String(), -1)
-
+	rawcmd = strings.Replace(rawcmd, "{sample.rate}", rate.String(), -1)
 	return rawcmd
 }
 
