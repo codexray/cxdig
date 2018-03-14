@@ -10,16 +10,16 @@ import (
 
 func TestBringToLastMoment(t *testing.T) {
 	tInitial := time.Date(2000, time.Month(5), 23, 15, 32, 20, 0, &time.Location{})
-	tDay := bringToLastMoment(tInitial, FreqDay)
+	tDay := bringToLastMoment(tInitial, RateDay)
 	assert.Equal(t, time.Date(tInitial.Year(), tInitial.Month(), tInitial.Day(), 23, 59, 59, 0, &time.Location{}), tDay)
 
-	tMonth := bringToLastMoment(tInitial, FreqMonth)
+	tMonth := bringToLastMoment(tInitial, RateMonth)
 	assert.Equal(t, time.Date(tInitial.Year(), tInitial.Month(), 31, 23, 59, 59, 0, &time.Location{}), tMonth)
 
-	tQuarter := bringToLastMoment(tInitial, FreqQuarter)
+	tQuarter := bringToLastMoment(tInitial, RateQuarter)
 	assert.Equal(t, time.Date(tInitial.Year(), time.Month(6), 30, 23, 59, 59, 0, &time.Location{}), tQuarter)
 
-	tYear := bringToLastMoment(tInitial, FreqYear)
+	tYear := bringToLastMoment(tInitial, RateYear)
 	assert.Equal(t, time.Date(tInitial.Year(), time.Month(12), 31, 23, 59, 59, 0, &time.Location{}), tYear)
 }
 
@@ -43,51 +43,51 @@ func TestGetCommitByStep(t *testing.T) {
 
 	commits = SortCommitByDateDecr(commits)
 
-	freq := SamplingFreq{
+	rate := SamplingRate{
 		Value: 1,
-		Unit:  FreqDay,
+		Unit:  RateDay,
 	}
-	commits2 := FilterCommitsByStep(commits, freq, 0)
+	commits2 := FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 366, len(commits2))
 
-	freq.Value = 10
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Value = 10
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 37, len(commits2))
 
-	freq.Unit = FreqMonth
-	freq.Value = 1
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Unit = RateMonth
+	rate.Value = 1
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 13, len(commits2))
 
-	freq.Value = 2
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Value = 2
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 7, len(commits2))
 
-	freq.Unit = FreqYear
-	freq.Value = 1
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Unit = RateYear
+	rate.Value = 1
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 2, len(commits2))
 
-	freq.Value = 2
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Value = 2
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 1, len(commits2))
 
-	freq.Unit = FreqQuarter
-	freq.Value = 1
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Unit = RateQuarter
+	rate.Value = 1
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 5, len(commits2))
 
-	freq.Value = 2
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Value = 2
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 3, len(commits2))
 
-	freq.Unit = FreqCommit
-	freq.Value = 10
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Unit = RateCommit
+	rate.Value = 10
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 74, len(commits2))
 
-	freq.Value = 2
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Value = 2
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 366, len(commits2))
 
 	temp := []types.CommitInfo{}
@@ -98,51 +98,51 @@ func TestGetCommitByStep(t *testing.T) {
 	}
 	commits = temp
 
-	freq = SamplingFreq{
+	rate = SamplingRate{
 		Value: 1,
-		Unit:  FreqDay,
+		Unit:  RateDay,
 	}
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 365, len(commits2))
 
-	freq.Value = 10
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Value = 10
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 37, len(commits2))
 
-	freq.Unit = FreqMonth
-	freq.Value = 1
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Unit = RateMonth
+	rate.Value = 1
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 13, len(commits2))
 
-	freq.Value = 2
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Value = 2
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 7, len(commits2))
 
-	freq.Unit = FreqYear
-	freq.Value = 1
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Unit = RateYear
+	rate.Value = 1
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 2, len(commits2))
 
-	freq.Value = 2
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Value = 2
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 1, len(commits2))
 
-	freq.Unit = FreqQuarter
-	freq.Value = 1
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Unit = RateQuarter
+	rate.Value = 1
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 5, len(commits2))
 
-	freq.Value = 2
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Value = 2
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 3, len(commits2))
 
-	freq.Unit = FreqCommit
-	freq.Value = 10
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Unit = RateCommit
+	rate.Value = 10
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 8, len(commits2))
 
-	freq.Value = 2
-	commits2 = FilterCommitsByStep(commits, freq, 0)
+	rate.Value = 2
+	commits2 = FilterCommitsByStep(commits, rate, 0)
 	assert.Equal(t, 40, len(commits2))
 
 }

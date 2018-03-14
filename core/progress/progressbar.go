@@ -30,6 +30,8 @@ func (p *ProgressBar) Init(total int) {
 	go func() {
 		<-c
 		p.isCancelled = true
+		p.Done()
+		core.Info("Cancelling...")
 	}()
 }
 

@@ -5,77 +5,77 @@ import (
 	"strconv"
 )
 
-// FreqUnit defines a frequency unit
-type FreqUnit string
+// RateUnit defines a rate unit
+type RateUnit string
 
-// SamplingFreq defines a frequency to be used for taking regular samples of a repository
-type SamplingFreq struct {
+// SamplingRate defines a rate to be used for taking regular samples of a repository
+type SamplingRate struct {
 	Value int
-	Unit  FreqUnit
+	Unit  RateUnit
 }
 
-func (freq *SamplingFreq) String() string {
+func (rate *SamplingRate) String() string {
 	var unit string
-	switch freq.Unit {
-	case FreqCommit:
+	switch rate.Unit {
+	case RateCommit:
 		unit = "c"
-	case FreqDay:
+	case RateDay:
 		unit = "d"
-	case FreqWeek:
+	case RateWeek:
 		unit = "w"
-	case FreqMonth:
+	case RateMonth:
 		unit = "m"
-	case FreqQuarter:
+	case RateQuarter:
 		unit = "q"
-	case FreqYear:
+	case RateYear:
 		unit = "y"
 	}
-	return strconv.Itoa(freq.Value) + unit
+	return strconv.Itoa(rate.Value) + unit
 }
 
 const (
-	FreqCommit  = FreqUnit("commit")
-	FreqDay     = FreqUnit("day")
-	FreqWeek    = FreqUnit("week")
-	FreqMonth   = FreqUnit("month")
-	FreqQuarter = FreqUnit("quarter")
-	FreqYear    = FreqUnit("year")
+	RateCommit  = RateUnit("commit")
+	RateDay     = RateUnit("day")
+	RateWeek    = RateUnit("week")
+	RateMonth   = RateUnit("month")
+	RateQuarter = RateUnit("quarter")
+	RateYear    = RateUnit("year")
 )
 
-// DecodeSamplingFreq decodes a sampling frequency from a given text
-func DecodeSamplingFreq(text string) (SamplingFreq, error) {
+// DecodeSamplingRate decodes a sampling rate from a given text
+func DecodeSamplingRate(text string) (SamplingRate, error) {
 	if len(text) < 2 {
-		return SamplingFreq{}, errors.New("invalid sampling frequency: expect an integer followed by an unit (example: '1w' for each week)")
+		return SamplingRate{}, errors.New("invalid sampling rate: expect an integer followed by an unit (example: '1w' for each week)")
 	}
-	// extract the frequency value
+	// extract the rate value
 	value, err := strconv.Atoi(text[:len(text)-1])
 	if err != nil {
-		return SamplingFreq{}, errors.New("invalid sampling frequency: expect an integer followed by an unit (example: '1w' for each week)")
+		return SamplingRate{}, errors.New("invalid sampling rate: expect an integer followed by an unit (example: '1w' for each week)")
 	}
 
-	// extract the frequency unit
+	// extract the rate unit
 	lastChar := text[len(text)-1]
 	if lastChar < 'a' || lastChar > 'z' {
-		return SamplingFreq{}, errors.New("invalid sampling frequency: unit is missing (example: '1w' for each week)")
+		return SamplingRate{}, errors.New("invalid sampling rate: unit is missing (example: '1w' for each week)")
 	}
 
-	var unit FreqUnit
+	var unit RateUnit
 	switch lastChar {
 	case 'c':
-		unit = FreqCommit
+		unit = RateCommit
 	case 'd':
-		unit = FreqDay
+		unit = RateDay
 	case 'w':
-		unit = FreqWeek
+		unit = RateWeek
 	case 'm':
-		unit = FreqMonth
+		unit = RateMonth
 	case 'q':
-		unit = FreqQuarter
+		unit = RateQuarter
 	case 'y':
-		unit = FreqYear
+		unit = RateYear
 	default:
-		return SamplingFreq{}, errors.New("invalid sampling frequency unit: valid units are c, d, w, m, q, y")
+		return SamplingRate{}, errors.New("invalid sampling rate unit: valid units are c, d, w, m, q, y")
 	}
 
-	return SamplingFreq{value, unit}, nil
+	return SamplingRate{value, unit}, nil
 }
