@@ -109,7 +109,7 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 					return err
 				}
 
-				cmd := tool.BuildCmd(r.absPath, r.Name(), commits[j], rate)
+				cmd := tool.BuildCmd(r.absPath, r.Name(), commits[j], rate, sample)
 				var stderr bytes.Buffer
 				cmd.Stderr = &stderr
 
