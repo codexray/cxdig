@@ -27,17 +27,18 @@ func NewExternalTool(rawCmd string) ExternalTool {
 	}
 }
 
-func (tool *ExternalTool) BuildCmd(repoPath string, name ProjectName, commit types.CommitInfo) *exec.Cmd {
-	expanded := expandExecRawCmd(tool.rawCmd, repoPath, name, commit)
+func (tool *ExternalTool) BuildCmd(repoPath string, name ProjectName, commit types.CommitInfo, rate SamplingRate) *exec.Cmd {
+	expanded := expandExecRawCmd(tool.rawCmd, repoPath, name, commit, rate)
 	toolName, args := splitCommandArgs(expanded)
 	return exec.Command(toolName, args...)
 }
 
-func expandExecRawCmd(rawcmd string, path string, name ProjectName, commit types.CommitInfo) string {
+func expandExecRawCmd(rawcmd string, path string, name ProjectName, commit types.CommitInfo, rate SamplingRate) string {
 	rawcmd = strings.Replace(rawcmd, "{path}", path, -1)
 	rawcmd = strings.Replace(rawcmd, "{commit.count}", strconv.Itoa(commit.Number), -1)
 	rawcmd = strings.Replace(rawcmd, "{commit.id}", commit.CommitID.String(), -1)
 	rawcmd = strings.Replace(rawcmd, "{name}", name.String(), -1)
+	rawcmd = strings.Replace(rawcmd, "{rate}", rate.String(), -1)
 
 	return rawcmd
 }

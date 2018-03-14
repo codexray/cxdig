@@ -55,7 +55,7 @@ func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, rate repos.Sampli
 	if err := output.ReadJSONFile(r, sampleFileName, &samples); err != nil {
 		return errors.Wrap(err, "failed to load sample file")
 	}
-	return r.walkCommitsWithCommand(tool, commits, samples, p)
+	return r.walkCommitsWithCommand(tool, commits, samples, p, rate)
 }
 
 func (r *GitRepository) Name() repos.ProjectName {
@@ -66,7 +66,7 @@ func (r *GitRepository) GetAbsPath() string {
 	return r.absPath
 }
 
-func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits []types.CommitInfo, samples []types.SampleInfo, p core.Progress) error {
+func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits []types.CommitInfo, samples []types.SampleInfo, p core.Progress, rate repos.SamplingRate) error {
 	currentBranch, err := r.GetCurrentBranch()
 	if err != nil {
 		return err
@@ -109,7 +109,7 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 					return err
 				}
 
-				cmd := tool.BuildCmd(r.absPath, r.Name(), commits[j])
+				cmd := tool.BuildCmd(r.absPath, r.Name(), commits[j], rate)
 				var stderr bytes.Buffer
 				cmd.Stderr = &stderr
 
