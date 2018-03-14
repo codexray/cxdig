@@ -31,18 +31,6 @@ func destroyTestingGitRepo(t *testing.T) {
 	cmd.Run()
 }
 
-func TestResetOnCommit(t *testing.T) {
-	createTestingGitRepo(t)
-
-	commits, err := ExtractCommitsFromRepository(repoPath)
-	assert.NoError(t, err)
-	ResetOnCommit(repoPath, commits[1].CommitID.String())
-	head := RunGitCommandOnDir(repoPath, []string{"rev-parse", "HEAD"}, false)
-	assert.Equal(t, commits[1].CommitID.String(), head[0])
-
-	destroyTestingGitRepo(t)
-}
-
 /*
 func TestWalkCommitsWithCommand(t *testing.T) {
 	createTestingGitRepo(t)

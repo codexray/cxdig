@@ -3,6 +3,7 @@ package repos
 import (
 	"codexray/cxdig/types"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -48,11 +49,19 @@ func TestFilterCommitInfo(t *testing.T) {
 }*/
 
 func TestReplaceRawCmdTemplates(t *testing.T) {
-	str := expandExecRawCmd("tool command {path} --name {name}.{commit.count}.{commit.id}.json --testflag 'with space'",
+	str := expandExecRawCmd("tool command {path} --name {name}.{sample.number}.{sample.date}.{commit.number}.{commit.id}.{sample.rate}.json --testflag 'with space'",
 		"./testPath/testProjet",
 		ProjectName("testprojet"),
-		types.CommitInfo{Number: 3, CommitID: "testingShaOfCommit"})
-	assert.Equal(t, "tool command ./testPath/testProjet --name testprojet.3.testingShaOfCommit.json --testflag 'with space'", str)
+		types.CommitInfo{Number: 3, CommitID: "testingShaOfCommit"},
+		SamplingRate{
+			Value: 1,
+			Unit:  RateWeek,
+		},
+		types.SampleInfo{
+			Number:   1,
+			DateTime: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.Local),
+		})
+	assert.Equal(t, "tool command ./testPath/testProjet --name testprojet.1.2000-01-01.3.testingShaOfCommit.1w.json --testflag 'with space'", str)
 }
 
 func TestSplitCommandArgs(t *testing.T) {
