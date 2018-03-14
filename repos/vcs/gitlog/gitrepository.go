@@ -158,17 +158,7 @@ func (r *GitRepository) CheckIgnoredFilesExistence() error {
 	if len(output) < 1 || output[0] == "" {
 		return nil
 	} else {
-		core.Warn(`Gitignored files are presents in the repo given, they will be deleted during the sampling process.
-Continue? (y/n)`)
-		reader := bufio.NewReader(os.Stdin)
-		answer := ""
-		for strings.ToLower(answer) != "y" && strings.ToLower(answer) != "n" {
-			answer, _ = reader.ReadString('\n')
-			answer = strings.TrimSuffix(answer, "\n")
-		}
-		if strings.ToLower(answer) == "n" {
-			os.Exit(0)
-		}
+		return errors.New("Gitignored files are presents in the repo given, they will be deleted during the sampling process. Track and commit them or use -f/--force to run anyway")
 	}
 	return nil
 }

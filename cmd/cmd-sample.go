@@ -27,6 +27,7 @@ type execOptions struct {
 	cmd    string
 	input  string
 	output string
+	force  bool
 }
 
 func (opts *execOptions) checkFlagCombination() error {
@@ -69,10 +70,12 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	err = repo.CheckIgnoredFilesExistence()
-	if err != nil {
-		core.Error(err)
-		return nil
+	if !execOpts.force {
+		err = repo.CheckIgnoredFilesExistence()
+		if err != nil {
+			core.Error(err)
+			return nil
+		}
 	}
 
 	tool := repos.NewExternalTool(execOpts.cmd)
@@ -131,4 +134,5 @@ func init() {
 	sampleCmd.Flags().StringVarP(&execOpts.cmd, "cmd", "c", "", "Command to be executed for each sample (default give just the list of the commits'sha for the freq given")
 	sampleCmd.Flags().StringVarP(&execOpts.input, "input", "i", "", "Existing sample file to be used rather than generating a new sampling list")
 	sampleCmd.Flags().StringVarP(&execOpts.output, "output", "o", "", "Save the generated sampling list with the given name")
+	sampleCmd.Flags().BoolVarP(&execOpts.force, "force", "f", false, "Force the deletion of git ignored files")
 }
