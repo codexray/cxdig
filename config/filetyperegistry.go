@@ -1,11 +1,12 @@
 package config
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"strings"
 
 	"github.com/pkg/errors"
 
-	"codexray/cxdig/core"
 	"codexray/cxdig/types"
 )
 
@@ -35,7 +36,14 @@ type fileLanguageType struct {
 // LoadFromJSONFile loads the types definition from a JSON file
 func (r *FileTypeRegistry) LoadFromJSONFile(filePath string) error {
 	var types []types.FileTypeInfo
-	if err := core.ReadJSONFile(filePath, types); err != nil {
+
+	raw, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(raw, types)
+	if err != nil {
 		return err
 	}
 	return r.Load(types)
