@@ -81,10 +81,10 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 		core.Info("Restoring original repository state...")
 		_, err := CheckOutOnCommit(r.absPath, currentBranch)
 		if err != nil {
-			panic(err)
+			panic(errors.Wrap(err, "something wrong happened while restoring the original repository state"))
 		}
 		if err = ClearUntrackedFiles(r.absPath); err != nil {
-			panic(err)
+			panic(errors.Wrap(err, "something wrong happened while cleaning untracked files after restoring original repository state"))
 		}
 	}()
 	core.Info("Executing command on each sample...")
