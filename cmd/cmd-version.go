@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"codexray/cxdig/core"
+	"fmt"
 
 	"github.com/spf13/cobra"
 )
@@ -13,9 +14,10 @@ var (
 
 func printVersion() {
 	if softwareVersion != "" {
-		core.Info(softwareVersion)
+		// don't use core.Info() to avoid beinf muted by quiet mode
+		fmt.Println(softwareVersion)
 	} else {
-		core.Info("<undefined>")
+		core.Warn("Version is undefined!")
 	}
 }
 

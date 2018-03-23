@@ -1,28 +1,26 @@
-build:
-  stage: build
+.gobuildenv: &gobuildenv
   image: golang:1.10-stretch
   before_script:
     - BUILD_DIR=$GOPATH/src/$CI_PROJECT_PATH
     - mkdir -p $BUILD_DIR && rmdir $BUILD_DIR
     - ln -s `pwd` $BUILD_DIR
     - cd $BUILD_DIR
+
+build_all:
+  stage: build
+  <<: *gobuildenv
   script:
     # check everything builds well
     - go build ./...
     # unit tests
     # - ./code-coverage.sh
-    # build with version info and without debug symbols
-    - VERSION="$CI_COMMIT_REF_NAME.`date +%Y.%m.%d`"
-    - go build -o cxdig -ldflags "-s -X cmd.softwareVersion=$VERSION"
-    - ./cxdig version
     # create package
-    - mkdir bin
-    - mv cxdig ./bin/
-    - go build -o ./bin/dumbtool ./test_suite/dumbtool
+    - go build -o ./dist/cxdig .
+    - go build -o ./dist/dumbtool ./test_suite/dumbtool
   artifacts:
     expire_in: 1 week
     paths:
-      - bin/
+      - dist/
 
 test_cmake:
   stage: test
@@ -30,9 +28,30 @@ test_cmake:
   before_script:
     - git clone https://github.com/Kitware/CMake --depth 120
   script:
-    - ./bin/cxdig scan -q CMake
+    - ./dist/cxdig scan -q CMake
     - if [ ! -f "CMake.cxray/commits.json" ]; then echo "commits JSON file is missing" && exit 1; fi
     - if [ ! -f "CMake.cxray/referential.json" ]; then echo "referential JSON file is missing" && exit 1; fi
-    - ./bin/cxdig sample -q --cmd "./bin/dumbtool --id {commit.id} --name {name} {path}" CMake --limit 100 | tee test-output.log
+    - ./dist/cxdig sample -q --cmd "./dist/dumbtool --id {commit.id} --name {name} {path}" CMake --limit 100 | tee test-output.log
     #- NBRETURN=$(cat test-output.log | wc -l)
     #- if [ "$NBRETURN" != "100" ]; then echo "Found $NBRETURN lines, expected 100" && exit 1; fi
+
+release:
+  stage: deploy
+  <<: *gobuildenv
+  dependencies: []
+  script:
+    # build with version info and without debug symbols
+    - VERSION="$CI_COMMIT_REF_NAME"
+    - '[[ "$VERSION" != v* ]] && VERSION="`date +%Y.%m.%d`"'
+    - echo "VERSION='$VERSION'"
+    - go build -o dist/cxdig -ldflags "-s -X $CI_PROJECT_PATH/cmd.softwareVersion=$VERSION"
+    # check version is OK
+    - PRINTED_VERSION=$(./cxdig version)
+    - echo "PRINTED_VERSION='$PRINTED_VERSION'"
+    - '[ "$VERSION" == "$PRINTED_VERSION" ]'
+  only:
+    - master
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - dist/
