@@ -14,8 +14,8 @@ import (
 
 var sampleCmd = &cobra.Command{
 	Use:   "sample",
-	Short: "Repeated source code analysis over time",
-	Long:  "Run a sampling tool on the source code at different points in time (sampling rating)",
+	Short: "Run a sampling opoeration at a given rate on the repository",
+	Long:  "Run a sampling tool on a repository at regular time points in its history (sampling rate)",
 	RunE:  cmdSample,
 }
 
@@ -103,15 +103,13 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 		if !exist {
-			err = repo.ConstructSampleList(rate, commits, execOpts.limit, execOpts.output)
-			if err != nil {
+			if err = repo.ConstructSampleList(rate, commits, execOpts.limit, execOpts.output); err != nil {
 				core.Error(err)
 				return nil
 			}
 		}
 	} else {
-		exist, _ := output.CheckFileExistence(repo, execOpts.input)
-		if !exist {
+		if exist, _ := output.CheckFileExistence(repo, execOpts.input); !exist {
 			core.Error(errors.New("the file given in input doesn't exists"))
 			return nil
 		}
@@ -129,10 +127,10 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	sampleCmd.Flags().IntVarP(&execOpts.limit, "limit", "l", 0, "Set the number of commits used")
-	sampleCmd.Flags().StringVarP(&execOpts.rate, "rate", "r", defaultSamplingRate, "Set the rate separating the commits treated (must be of the form : 10c, 2d, 1m, 3y, etc.")
-	sampleCmd.Flags().StringVarP(&execOpts.cmd, "cmd", "c", "", "Command to be executed for each sample (default give just the list of the commits'sha for the rate given")
-	sampleCmd.Flags().StringVarP(&execOpts.input, "input", "i", "", "Existing sample file to be used rather than generating a new sampling list")
+	sampleCmd.Flags().IntVarP(&execOpts.limit, "limit", "l", 0, "Maximum number of samples to process")
+	sampleCmd.Flags().StringVarP(&execOpts.rate, "rate", "r", defaultSamplingRate, "Time difference between two samples (10c, 2d, 1m, 3y, etc.)")
+	sampleCmd.Flags().StringVarP(&execOpts.cmd, "cmd", "c", "", "External command to be executed for each sample")
+	sampleCmd.Flags().StringVarP(&execOpts.input, "input", "i", "", "Existing sample file to be reused rather than generating a new sampling list")
 	sampleCmd.Flags().StringVarP(&execOpts.output, "output", "o", "", "Save the generated sampling list with the given name")
-	sampleCmd.Flags().BoolVarP(&execOpts.force, "force", "f", false, "Force the deletion of git ignored files")
+	sampleCmd.Flags().BoolVarP(&execOpts.force, "force", "f", false, "Delete local changes in the repository if required")
 }

@@ -3,13 +3,15 @@ package cmd
 import (
 	"codexray/cxdig/core"
 	"fmt"
+	"runtime"
 
 	"github.com/spf13/cobra"
 )
 
 var (
-	// Value is injected at build time
+	// Values are injected at build time from CI
 	softwareVersion string
+	buildDate       string
 )
 
 func printVersion() {
@@ -17,7 +19,10 @@ func printVersion() {
 		// don't use core.Info() to avoid beinf muted by quiet mode
 		fmt.Println(softwareVersion)
 	} else {
-		core.Warn("Version is undefined!")
+		core.Warn("version is undefined")
+	}
+	if buildDate != "" {
+		core.Infof("Built on %s with %s\n", buildDate, runtime.Version())
 	}
 }
 

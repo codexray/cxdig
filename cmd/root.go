@@ -7,11 +7,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var quietMode bool
-
 var rootCmd = &cobra.Command{
 	Use:   "cxdig",
-	Short: "CodeXray tool to scan source code repositories.",
+	Short: "CodeXray tool to collect data from source code repositories.",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// this function is ran in the context of a child command
 		// therefore the quiet flag is inherited from its parent and must be
@@ -25,11 +23,11 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-var quiet bool
-
 // Execute adds all child commands to the root command and sets flags appropriately.
 func Execute() {
 	addCommands()
+	// disable information splash screen on Windows if the CLI is started from explorer.exe
+	cobra.MousetrapHelpText = ""
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}

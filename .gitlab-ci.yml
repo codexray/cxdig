@@ -15,12 +15,12 @@ build:
     # unit tests
     # - ./code-coverage.sh
     # create package
-    - go build -o ./dist/cxdig .
-    - go build -o ./dist/dumbtool ./test_suite/dumbtool
+    - go build -o ./cibuild/cxdig .
+    - go build -o ./cibuild/dumbtool ./test_suite/dumbtool
   artifacts:
     expire_in: 1 week
     paths:
-      - dist/
+      - cibuild/
 
 test_cmake:
   stage: test
@@ -28,34 +28,45 @@ test_cmake:
   before_script:
     - git clone https://github.com/Kitware/CMake --depth 120
   script:
-    - ./dist/cxdig scan -q CMake
+    - ./cibuild/cxdig scan -q CMake
     - if [ ! -f "CMake.cxray/commits.json" ]; then echo "commits JSON file is missing" && exit 1; fi
     - if [ ! -f "CMake.cxray/referential.json" ]; then echo "referential JSON file is missing" && exit 1; fi
-    - ./dist/cxdig sample -q --cmd "./dist/dumbtool --id {commit.id} --name {name} {path}" CMake --limit 100 | tee test-output.log
+    - ./cibuild/cxdig sample -q --cmd "./cibuild/dumbtool --id {commit.id} --name {name} {path}" CMake --limit 100 | tee test-output.log
     #- NBRETURN=$(cat test-output.log | wc -l)
     #- if [ "$NBRETURN" != "100" ]; then echo "Found $NBRETURN lines, expected 100" && exit 1; fi
 
-release:
-  stage: deploy
+build_dist:
+  stage: test
   <<: *gobuildenv
   dependencies: []
   script:
-    # set version value
-    - VERSION="$CI_COMMIT_REF_NAME"
-    - DATE="`date +%Y.%m.%d`"
     # build without debugging symbols
     - LDFLAGS="-s"
-    # inject version info
-    - LDFLAGS="$LDFLAGS -X $CI_PROJECT_PATH/cmd.softwareVersion=$VERSION"
+    # inject version info and build date
+    - LDFLAGS="$LDFLAGS -X $CI_PROJECT_PATH/cmd.softwareVersion=$CI_COMMIT_REF_NAME"
+    - LDFLAGS="$LDFLAGS -X $CI_PROJECT_PATH/cmd.buildDate=`date +%Y.%m.%d`"
     # multiple builds
     - go get github.com/mitchellh/gox
-    - gox -arch "amd64 arm" -os="!netbsd" -ldflags "$LDFLAGS" -output "dist/${CI_PROJECT_NAME}_{{.OS}}_{{.Arch}}"
-    # check version is OK
-    - PRINTED_VERSION=$(./dist/cxdig_linux_amd64 version -q)
-    - '[[ "$PRINTED_VERSION" == v* ]] || (echo "Skipping invalid version: $PRINTED_VERSION")'
-  only:
-    - master
+    - gox -arch "amd64 arm" -os="!netbsd" -ldflags "$LDFLAGS" -output "dist/{{.OS}}.{{.Arch}}/${CI_PROJECT_NAME}"
+    - ./dist/linux.amd64/cxdig version
   artifacts:
     expire_in: 1 week
     paths:
       - dist/
+
+deploy:
+  stage: deploy
+  <<: *gobuildenv
+  dependencies:
+    - build_dist
+  script:
+    # check version is OK
+    - VERSION=$(./dist/linux.amd64/cxdig version -q)
+    - '[[ "$VERSION" =~ ^[0-9.]+$ ]] || (echo "Invalid version: $VERSION"; exit 1)'
+    - '[ "$VERSION" == "$CI_COMMIT_REF_NAME" ]'
+    # publish on GitHub
+    - '[ ! -z "$GITHUB_TOKEN" ]'
+    - go get github.com/tcnksm/ghr
+    - ghr -t $GITHUB_TOKEN -u "codexray" -r $CI_PROJECT_NAME --replace $VERSION dist/
+  only:
+    - tags
