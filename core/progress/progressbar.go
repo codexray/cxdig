@@ -1,18 +1,13 @@
 package progress
 
 import (
+	"codexray/cxdig/core"
 	"os"
 	"os/signal"
 	"syscall"
 
 	pb "github.com/gosuri/uiprogress"
 )
-
-var isMute bool
-
-func SetProgressMuting(val bool) {
-	isMute = val
-}
 
 // ProgressBar Implements core.Progress
 type ProgressBar struct {
@@ -21,7 +16,7 @@ type ProgressBar struct {
 }
 
 func (p *ProgressBar) Init(total int) {
-	if !isMute {
+	if !core.IsQuietModeEnabled() {
 		pb.Start()
 	}
 	p.Impl = pb.AddBar(total)
@@ -43,7 +38,9 @@ func (p *ProgressBar) Increment() {
 }
 
 func (p *ProgressBar) Done() {
-	//p.Impl.Finish()
+	if !core.IsQuietModeEnabled() {
+		pb.Stop()
+	}
 }
 
 func (p *ProgressBar) IsCancelled() bool {

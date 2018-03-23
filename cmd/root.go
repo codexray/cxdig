@@ -2,22 +2,26 @@ package cmd
 
 import (
 	"codexray/cxdig/core"
-	"codexray/cxdig/core/progress"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "scanner",
+	Use:   "cxdig",
 	Short: "CodeXray tool to scan source code repositories.",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		core.SetConsoleMuting(quiet)
-		progress.SetProgressMuting(quiet)
+		// this function is ran in the context of a child command
+		// therefore the quiet flag is inherited from its parent and must be
+		// checked via Flags() and not PersistentFlags()
+		quietMode, err := cmd.Flags().GetBool("quiet")
+		if err != nil {
+			panic(err)
+		}
+
+		core.SetQuietMode(quietMode)
 	},
 }
-
-var quiet bool
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 func Execute() {
@@ -33,18 +37,5 @@ func addCommands() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(scanCmd)
 	rootCmd.AddCommand(sampleCmd)
-	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "Mute progress bar and information messages, only errors are displayed")
+	rootCmd.PersistentFlags().BoolP("quiet", "q", false, "Quiet mode")
 }
-
-/*
-func init() {
-	rootCmd.PersistentFlags().StringP("log-level", "l", "warn", "Level of logs to report")
-	cobra.OnInitialize(func() {
-		logLevel, _ := rootCmd.PersistentFlags().GetString("log-level")
-		if err := setupLogs(logLevel); err != nil {
-			core.Error(err)
-			os.Exit(1)
-		}
-	})
-}
-*/

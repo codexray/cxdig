@@ -2,9 +2,6 @@ package cmd
 
 import (
 	"codexray/cxdig/core"
-	"codexray/cxdig/core/progress"
-	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -27,16 +24,5 @@ var versionCmd = &cobra.Command{
 	Short: "Print the version number",
 	Run: func(cmd *cobra.Command, args []string) {
 		printVersion()
-		pb := &progress.ProgressBar{}
-		pb.Init(100) // start rendering
-
-		for i := 0; i < 100; i++ {
-			if pb.IsCancelled() {
-				break
-			}
-			pb.Increment()
-			time.Sleep(time.Millisecond * 20)
-		}
-		fmt.Println("hello")
 	},
 }

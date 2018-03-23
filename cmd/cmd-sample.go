@@ -19,12 +19,29 @@ var sampleCmd = &cobra.Command{
 	RunE:  cmdSample,
 }
 
+const defaultSamplingFreq = "1w"
+
 type execOptions struct {
 	limit  int
 	freq   string
 	cmd    string
 	input  string
 	output string
+}
+
+func (opts *execOptions) checkFlagCombination() error {
+	if opts.input != "" {
+		if opts.cmd == "" {
+			return errors.New("--input must be used in combination with --cmd")
+		}
+		if opts.freq != defaultSamplingFreq {
+			return errors.New("--input cannot be used in combination with --freq")
+		}
+		if opts.output != "" {
+			return errors.New("--input and --output cannot be mixed together")
+		}
+	}
+	return nil
 }
 
 var execOpts execOptions
@@ -35,8 +52,8 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	err = checkFlagInteracting()
-	if err != nil {
+
+	if err = execOpts.checkFlagCombination(); err != nil {
 		return err
 	}
 
@@ -102,20 +119,10 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func checkFlagInteracting() error {
-	if execOpts.input != "" && execOpts.cmd == "" {
-		return errors.New("-i/--input flag cannot be used without -c/--cmd flag")
-	}
-	if execOpts.output != "" && execOpts.input != "" {
-		return errors.New("-i/--input flag cannot be used with -o/--output flag")
-	}
-	return nil
-}
-
 func init() {
 	sampleCmd.Flags().IntVarP(&execOpts.limit, "limit", "l", 0, "Set the number of commits used")
-	sampleCmd.Flags().StringVarP(&execOpts.freq, "freq", "f", "1w", "Set the frequence separating the commits treated (must be of the form : 10c, 2d, 1m, 3y, etc.")
+	sampleCmd.Flags().StringVarP(&execOpts.freq, "freq", "f", defaultSamplingFreq, "Set the frequence separating the commits treated (must be of the form : 10c, 2d, 1m, 3y, etc.")
 	sampleCmd.Flags().StringVarP(&execOpts.cmd, "cmd", "c", "", "Command to be executed for each sample (default give just the list of the commits'sha for the freq given")
-	sampleCmd.Flags().StringVarP(&execOpts.input, "input", "i", "", "Specify an sample file to be load in place of generate it, must be combined with -c")
-	sampleCmd.Flags().StringVarP(&execOpts.output, "output", "o", "", "Specify the name for the generated sample file, cannot be combined with -i")
+	sampleCmd.Flags().StringVarP(&execOpts.input, "input", "i", "", "Existing sample file to be used rather than generating a new sampling list")
+	sampleCmd.Flags().StringVarP(&execOpts.output, "output", "o", "", "Save the generated sampling list with the given name")
 }
