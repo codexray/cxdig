@@ -7,6 +7,7 @@ import (
 	"codexray/cxdig/repos"
 	"codexray/cxdig/types"
 	"path/filepath"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 
@@ -45,7 +46,7 @@ func (r *GitRepository) ConstructSampleList(freq repos.SamplingFreq, commits []t
 func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, freq repos.SamplingFreq, commits []types.CommitInfo, sampleFileName string, p core.Progress) error {
 	core.Info("Checking repository status...")
 	if !CheckGitStatus(r.absPath) {
-		return errors.New("the git repository is not clean, commit your changes and retry")
+		return errors.New("the git repository is not clean, commit your changes or track untracked files and retry")
 	}
 	var samples []types.SampleInfo
 	if sampleFileName == "" {
@@ -63,35 +64,43 @@ func (r *GitRepository) Name() repos.ProjectName {
 }
 
 func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits []types.CommitInfo, samples []types.SampleInfo, p core.Progress) error {
-	firstCommitID := commits[0].CommitID.String()
+	currentBranch, err := r.GetCurrentBranch()
+	if err != nil {
+		return err
+	}
 
 	// TODO: make sure the first commit ID is the current commit ID in the repo
 	// restore initial state of the repo
 	defer func() {
+		p.Done()
 		core.Info("Restoring original repository state...")
-		ResetOnCommit(r.absPath, firstCommitID)
+		_, err := CheckOutOnCommit(r.absPath, currentBranch)
+		if err != nil {
+			panic(err)
+		}
+		if err = ClearUntrackedFiles(r.absPath); err != nil {
+			panic(err)
+		}
 	}()
 	core.Info("Executing command on each sample...")
 	p.Init(len(samples))
-	defer p.Done()
 
 	commitIndex := 0
 	treatment := 0
 	for _, sample := range samples {
 		if p != nil {
+			if p.IsCancelled() {
+				break
+			}
 			p.Increment()
 		}
 		for j := commitIndex; j < len(commits); j++ {
 			if commits[j].CommitID == sample.CommitID {
-				ResetOnCommit(r.absPath, commits[j].CommitID.String())
+				CheckOutOnCommit(r.absPath, commits[j].CommitID.String())
 
 				cmd := tool.BuildCmd(r.absPath, r.Name(), commits[j])
 				var stderr bytes.Buffer
 				cmd.Stderr = &stderr
-				if errmsg := stderr.String(); len(errmsg) > 0 {
-					// TODO: better error handling
-					//logrus.Warn(errmsg)
-				}
 
 				// TODO: evaluate CombinedOutput()
 				out, err := cmd.Output()
@@ -105,9 +114,6 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 				break
 			}
 		}
-	}
-	if treatment != len(samples) {
-		logrus.Panic("an error occured while treating samples. All the samples was not treated")
 	}
 	return nil
 }
@@ -123,4 +129,18 @@ func (r *GitRepository) ExtractCommits() ([]types.CommitInfo, error) {
 	commits = FindMainParentOfCommits(commits, r.absPath)
 
 	return commits, nil
+}
+
+func (r *GitRepository) GetCurrentBranch() (string, error) {
+	rtn, _ := RunGitCommandOnDir(r.absPath, []string{"branch"}, false)
+	currentBranch := ""
+	for _, branch := range rtn {
+		if strings.HasPrefix(branch, "*") {
+			currentBranch = strings.TrimSpace(strings.TrimPrefix(branch, "*"))
+		}
+	}
+	if currentBranch == "" {
+		return "", errors.New("Current branch could not be found, maybe you are in 'detached HEAD' state?")
+	}
+	return currentBranch, nil
 }

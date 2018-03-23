@@ -8,10 +8,17 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "scanner",
+	Use:   "cxdig",
 	Short: "CodeXray tool to scan source code repositories.",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		quietMode := (cmd.PersistentFlags().Lookup("quiet") != nil)
+		// this function is ran in the context of a child command
+		// therefore the quiet flag is inherited from its parent and must be
+		// checked via Flags() and not PersistentFlags()
+		quietMode, err := cmd.Flags().GetBool("quiet")
+		if err != nil {
+			panic(err)
+		}
+
 		core.SetQuietMode(quietMode)
 	},
 }

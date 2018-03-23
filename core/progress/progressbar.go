@@ -2,29 +2,47 @@ package progress
 
 import (
 	"codexray/cxdig/core"
+	"os"
+	"os/signal"
+	"syscall"
 
-	pb "gopkg.in/cheggaaa/pb.v1"
+	pb "github.com/gosuri/uiprogress"
 )
 
-// ProgressBar implements core.Progress
+// ProgressBar Implements core.Progress
 type ProgressBar struct {
-	impl *pb.ProgressBar
+	Impl        *pb.Bar
+	isCancelled bool
 }
 
 func (p *ProgressBar) Init(total int) {
 	if !core.IsQuietModeEnabled() {
-		p.impl = pb.StartNew(total)
+		pb.Start()
 	}
+	p.Impl = pb.AddBar(total)
+	p.Impl.AppendCompleted()
+	p.Impl.PrependElapsed()
+	p.isCancelled = false
+
+	// TODO: move that code into a dedicated function
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+	go func() {
+		<-c
+		p.isCancelled = true
+	}()
 }
 
 func (p *ProgressBar) Increment() {
-	if !core.IsQuietModeEnabled() {
-		p.impl.Increment()
-	}
+	p.Impl.Incr()
 }
 
 func (p *ProgressBar) Done() {
 	if !core.IsQuietModeEnabled() {
-		p.impl.Finish()
+		pb.Stop()
 	}
+}
+
+func (p *ProgressBar) IsCancelled() bool {
+	return p.isCancelled
 }
