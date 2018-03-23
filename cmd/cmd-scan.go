@@ -14,8 +14,8 @@ import (
 
 var scanCmd = &cobra.Command{
 	Use:   "scan",
-	Short: "Extract information from a repository",
-	Long:  "Scan a given repository for its commits and source files.",
+	Short: "Collect data from a given repository",
+	Long:  "Scan a given repository for its commits and source files",
 	RunE:  cmdScanProject,
 }
 
@@ -59,37 +59,3 @@ func extractRepoCommitsAndSaveResult(repo repos.Repository) error {
 
 	return nil // ok
 }
-
-/*
-func saveCodeChangesToJSON(name ProjectName, diff []core.CommitChanges) error {
-	fileName := fmt.Sprintf("%s.[codechanges].json", name.String())
-	logrus.WithField("file-name", fileName).Info("Saving code changes to JSON file")
-
-	return core.WriteJSONFile(fileName, diff)
-}
-
-func extractCommitChanges(name ProjectName, repoPath string, commits []types.CommitInfo) {
-	const nbCommitsToExtract = 50
-	ids := make([]types.CommitID, 0, nbCommitsToExtract)
-	for _, c := range commits {
-		if len(c.Changes) > 0 {
-			ids = append(ids, c.CommitID)
-			if len(ids) == nbCommitsToExtract {
-				break
-			}
-		}
-	}
-
-	printProgress := func(current int, total int) {
-		fmt.Printf("%d / %d\n", current, total)
-	}
-	diffs := codechanges.ExtractCommitChanges(repoPath, ids, printProgress)
-
-	err := saveCodeChangesToJSON(name, diffs)
-	DieOnError(err, "Failed to save code changes to JSON file")
-}
-
-func init() {
-	scanCmd.PersistentFlags().String("name", "", "Name of the project. Default is repository name put in lower case.")
-}
-*/

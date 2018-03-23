@@ -15,12 +15,12 @@ build:
     # unit tests
     # - ./code-coverage.sh
     # create package
-    - go build -o ./dist/cxdig .
-    - go build -o ./dist/dumbtool ./test_suite/dumbtool
+    - go build -o ./build/cxdig .
+    - go build -o ./build/dumbtool ./test_suite/dumbtool
   artifacts:
     expire_in: 1 week
     paths:
-      - dist/
+      - build/
 
 test_cmake:
   stage: test
@@ -28,10 +28,10 @@ test_cmake:
   before_script:
     - git clone https://github.com/Kitware/CMake --depth 120
   script:
-    - ./dist/cxdig scan -q CMake
+    - ./build/cxdig scan -q CMake
     - if [ ! -f "CMake.cxray/commits.json" ]; then echo "commits JSON file is missing" && exit 1; fi
     - if [ ! -f "CMake.cxray/referential.json" ]; then echo "referential JSON file is missing" && exit 1; fi
-    - ./dist/cxdig sample -q --cmd "./dist/dumbtool --id {commit.id} --name {name} {path}" CMake --limit 100 | tee test-output.log
+    - ./build/cxdig sample -q --cmd "./build/dumbtool --id {commit.id} --name {name} {path}" CMake --limit 100 | tee test-output.log
     #- NBRETURN=$(cat test-output.log | wc -l)
     #- if [ "$NBRETURN" != "100" ]; then echo "Found $NBRETURN lines, expected 100" && exit 1; fi
 
@@ -42,19 +42,20 @@ release:
   script:
     # set version value
     - VERSION="$CI_COMMIT_REF_NAME"
-    - DATE="`date +%Y.%m.%d`"
     # build without debugging symbols
     - LDFLAGS="-s"
-    # inject version info
+    # inject version info and build date
     - LDFLAGS="$LDFLAGS -X $CI_PROJECT_PATH/cmd.softwareVersion=$VERSION"
+    - LDFLAGS="$LDFLAGS -X $CI_PROJECT_PATH/cmd.buildDate=`date +%Y.%m.%d`"
     # multiple builds
     - go get github.com/mitchellh/gox
-    - gox -arch "amd64 arm" -os="!netbsd" -ldflags "$LDFLAGS" -output "dist/${CI_PROJECT_NAME}_{{.OS}}_{{.Arch}}"
+    - gox -arch "amd64 arm" -os="!netbsd" -ldflags "$LDFLAGS" -output "dist/{{.OS}}.{{.Arch}}/${CI_PROJECT_NAME}"
+    - ./dist/linux.amd64/cxdig version
     # check version is OK
-    - PRINTED_VERSION=$(./dist/cxdig_linux_amd64 version -q)
+    - PRINTED_VERSION=$(./dist/linux.amd64/cxdig version -q)
     - '[[ "$PRINTED_VERSION" == v* ]] || (echo "Skipping invalid version: $PRINTED_VERSION")'
-  only:
-    - master
+  #only:
+  #  - master
   artifacts:
     expire_in: 1 week
     paths:

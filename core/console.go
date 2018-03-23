@@ -31,10 +31,10 @@ func Infof(format string, a ...interface{}) {
 }
 
 func Warn(msg string) {
-	fmt.Println(`/!\ ` + msg)
+	fmt.Println("Warning: " + msg)
 }
 func Warnf(format string, a ...interface{}) {
-	fmt.Println(`/!\ ` + fmt.Sprintf(format, a...))
+	fmt.Println("Warning: " + fmt.Sprintf(format, a...))
 }
 
 // Error reports an error to the user
