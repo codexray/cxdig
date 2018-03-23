@@ -23,6 +23,8 @@ var rootCmd = &cobra.Command{
 	},
 }
 
+var quiet bool
+
 // Execute adds all child commands to the root command and sets flags appropriately.
 func Execute() {
 	addCommands()
