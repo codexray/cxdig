@@ -6,7 +6,7 @@
     - ln -s `pwd` $BUILD_DIR
     - cd $BUILD_DIR
 
-build_all:
+build:
   stage: build
   <<: *gobuildenv
   script:
@@ -40,15 +40,19 @@ release:
   <<: *gobuildenv
   dependencies: []
   script:
-    # build with version info and without debug symbols
+    # set version value
     - VERSION="$CI_COMMIT_REF_NAME"
-    - '[[ "$VERSION" != v* ]] && VERSION="`date +%Y.%m.%d`"'
-    - echo "VERSION='$VERSION'"
-    - go build -o dist/cxdig -ldflags "-s -X $CI_PROJECT_PATH/cmd.softwareVersion=$VERSION"
+    - DATE="`date +%Y.%m.%d`"
+    # build without debugging symbols
+    - LDFLAGS="-s"
+    # inject version info
+    - LDFLAGS="$LDFLAGS -X $CI_PROJECT_PATH/cmd.softwareVersion=$VERSION"
+    # multiple builds
+    - go get github.com/mitchellh/gox
+    - gox -arch "amd64 arm" -os="!netbsd" -ldflags "$LDFLAGS" -output "dist/${CI_PROJECT_NAME}_{{.OS}}_{{.Arch}}"
     # check version is OK
-    - PRINTED_VERSION=$(./cxdig version)
-    - echo "PRINTED_VERSION='$PRINTED_VERSION'"
-    - '[ "$VERSION" == "$PRINTED_VERSION" ]'
+    - PRINTED_VERSION=$(./dist/cxdig_linux_amd64 version -q)
+    - '[[ "$PRINTED_VERSION" == v* ]] || (echo "Skipping invalid version: $PRINTED_VERSION")'
   only:
     - master
   artifacts:
