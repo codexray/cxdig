@@ -11,9 +11,9 @@ build:
     - go build ./...
     # unit tests
     # - ./code-coverage.sh
-    # build
+    # build with version info and without debug symbols
     - VERSION="$CI_COMMIT_REF_NAME.`date +%Y.%m.%d`"
-    - go build -o cxdig -ldflags "-X cmd.softwareVersion=$VERSION"
+    - go build -o cxdig -ldflags "-s -X cmd.softwareVersion=$VERSION"
     - ./cxdig version
     # create package
     - mkdir bin
@@ -30,9 +30,9 @@ test_cmake:
   before_script:
     - git clone https://github.com/Kitware/CMake --depth 120
   script:
-    - ./bin/cxdig scan CMake
+    - ./bin/cxdig scan -q CMake
     - if [ ! -f "CMake.cxray/commits.json" ]; then echo "commits JSON file is missing" && exit 1; fi
     - if [ ! -f "CMake.cxray/referential.json" ]; then echo "referential JSON file is missing" && exit 1; fi
-    - ./bin/cxdig sample --cmd "./bin/dumbtool --id {commit.id} --name {name} {path}" CMake --limit 100 | tee test-output.log
+    - ./bin/cxdig sample -q --cmd "./bin/dumbtool --id {commit.id} --name {name} {path}" CMake --limit 100 | tee test-output.log
     #- NBRETURN=$(cat test-output.log | wc -l)
     #- if [ "$NBRETURN" != "100" ]; then echo "Found $NBRETURN lines, expected 100" && exit 1; fi
