@@ -25,11 +25,11 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-var quiet bool
-
 // Execute adds all child commands to the root command and sets flags appropriately.
 func Execute() {
 	addCommands()
+	// disable information splash screen on Windows if the CLI is started from explorer.exe
+	cobra.MousetrapHelpText = ""
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
