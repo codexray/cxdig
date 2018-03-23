@@ -27,18 +27,20 @@ func NewExternalTool(rawCmd string) ExternalTool {
 	}
 }
 
-func (tool *ExternalTool) BuildCmd(repoPath string, name ProjectName, commit types.CommitInfo) *exec.Cmd {
-	expanded := expandExecRawCmd(tool.rawCmd, repoPath, name, commit)
+func (tool *ExternalTool) BuildCmd(repoPath string, name ProjectName, commit types.CommitInfo, rate SamplingRate, sample types.SampleInfo) *exec.Cmd {
+	expanded := expandExecRawCmd(tool.rawCmd, repoPath, name, commit, rate, sample)
 	toolName, args := splitCommandArgs(expanded)
 	return exec.Command(toolName, args...)
 }
 
-func expandExecRawCmd(rawcmd string, path string, name ProjectName, commit types.CommitInfo) string {
+func expandExecRawCmd(rawcmd string, path string, name ProjectName, commit types.CommitInfo, rate SamplingRate, sample types.SampleInfo) string {
 	rawcmd = strings.Replace(rawcmd, "{path}", path, -1)
-	rawcmd = strings.Replace(rawcmd, "{commit.count}", strconv.Itoa(commit.Number), -1)
+	rawcmd = strings.Replace(rawcmd, "{commit.number}", strconv.Itoa(commit.Number), -1)
 	rawcmd = strings.Replace(rawcmd, "{commit.id}", commit.CommitID.String(), -1)
 	rawcmd = strings.Replace(rawcmd, "{name}", name.String(), -1)
-
+	rawcmd = strings.Replace(rawcmd, "{sample.rate}", rate.String(), -1)
+	rawcmd = strings.Replace(rawcmd, "{sample.date}", sample.DateTime.Format("2006-01-02"), -1)
+	rawcmd = strings.Replace(rawcmd, "{sample.number}", sample.Number.String(), -1)
 	return rawcmd
 }
 

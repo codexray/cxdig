@@ -15,18 +15,19 @@ import (
 var sampleCmd = &cobra.Command{
 	Use:   "sample",
 	Short: "Repeated source code analysis over time",
-	Long:  "Run a sampling tool on the source code at different points in time (sampling frequency)",
+	Long:  "Run a sampling tool on the source code at different points in time (sampling rating)",
 	RunE:  cmdSample,
 }
 
-const defaultSamplingFreq = "1w"
+const defaultSamplingRate = "1w"
 
 type execOptions struct {
 	limit  int
-	freq   string
+	rate   string
 	cmd    string
 	input  string
 	output string
+	force  bool
 }
 
 func (opts *execOptions) checkFlagCombination() error {
@@ -34,8 +35,8 @@ func (opts *execOptions) checkFlagCombination() error {
 		if opts.cmd == "" {
 			return errors.New("--input must be used in combination with --cmd")
 		}
-		if opts.freq != defaultSamplingFreq {
-			return errors.New("--input cannot be used in combination with --freq")
+		if opts.rate != defaultSamplingRate {
+			return errors.New("--input cannot be used in combination with --rate")
 		}
 		if opts.output != "" {
 			return errors.New("--input and --output cannot be mixed together")
@@ -63,10 +64,18 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	freq, err := repos.DecodeSamplingFreq(execOpts.freq)
+	rate, err := repos.DecodeSamplingRate(execOpts.rate)
 	if err != nil {
 		core.Error(err)
 		return nil
+	}
+
+	if !execOpts.force {
+		err = repo.CheckIgnoredFilesExistence()
+		if err != nil {
+			core.Error(err)
+			return nil
+		}
 	}
 
 	tool := repos.NewExternalTool(execOpts.cmd)
@@ -88,13 +97,13 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 	commits = repos.SortCommitByDateDecr(commits)
 
 	if execOpts.input == "" {
-		exist, err := output.CheckFileExistence(repo, "samples."+freq.String()+".json")
+		exist, err := output.CheckFileExistence(repo, "samples."+rate.String()+".json")
 		if err != nil {
 			core.Error(err)
 			return nil
 		}
 		if !exist {
-			err = repo.ConstructSampleList(freq, commits, execOpts.limit, execOpts.output)
+			err = repo.ConstructSampleList(rate, commits, execOpts.limit, execOpts.output)
 			if err != nil {
 				core.Error(err)
 				return nil
@@ -111,7 +120,7 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 	if commits != nil && execOpts.cmd != "" {
 		pb := &progress.ProgressBar{}
 		execOpts.input = execOpts.output
-		err = repo.SampleWithCmd(tool, freq, commits, execOpts.input, pb)
+		err = repo.SampleWithCmd(tool, rate, commits, execOpts.input, pb)
 		if err != nil {
 			core.Error(err)
 		}
@@ -121,8 +130,9 @@ func cmdSample(cmd *cobra.Command, args []string) error {
 
 func init() {
 	sampleCmd.Flags().IntVarP(&execOpts.limit, "limit", "l", 0, "Set the number of commits used")
-	sampleCmd.Flags().StringVarP(&execOpts.freq, "freq", "f", defaultSamplingFreq, "Set the frequence separating the commits treated (must be of the form : 10c, 2d, 1m, 3y, etc.")
-	sampleCmd.Flags().StringVarP(&execOpts.cmd, "cmd", "c", "", "Command to be executed for each sample (default give just the list of the commits'sha for the freq given")
+	sampleCmd.Flags().StringVarP(&execOpts.rate, "rate", "r", defaultSamplingRate, "Set the rate separating the commits treated (must be of the form : 10c, 2d, 1m, 3y, etc.")
+	sampleCmd.Flags().StringVarP(&execOpts.cmd, "cmd", "c", "", "Command to be executed for each sample (default give just the list of the commits'sha for the rate given")
 	sampleCmd.Flags().StringVarP(&execOpts.input, "input", "i", "", "Existing sample file to be used rather than generating a new sampling list")
 	sampleCmd.Flags().StringVarP(&execOpts.output, "output", "o", "", "Save the generated sampling list with the given name")
+	sampleCmd.Flags().BoolVarP(&execOpts.force, "force", "f", false, "Force the deletion of git ignored files")
 }

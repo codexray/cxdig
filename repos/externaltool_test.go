@@ -3,33 +3,34 @@ package repos
 import (
 	"codexray/cxdig/types"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFindFilterType(t *testing.T) {
-	filter, err := DecodeSamplingFreq("4c")
-	assert.Equal(t, SamplingFreq{4, FreqCommit}, filter)
+	filter, err := DecodeSamplingRate("4c")
+	assert.Equal(t, SamplingRate{4, RateCommit}, filter)
 	assert.NoError(t, err)
-	filter, err = DecodeSamplingFreq("1w")
-	assert.Equal(t, SamplingFreq{1, FreqWeek}, filter)
+	filter, err = DecodeSamplingRate("1w")
+	assert.Equal(t, SamplingRate{1, RateWeek}, filter)
 	assert.NoError(t, err)
-	filter, err = DecodeSamplingFreq("3m")
-	assert.Equal(t, SamplingFreq{3, FreqMonth}, filter)
+	filter, err = DecodeSamplingRate("3m")
+	assert.Equal(t, SamplingRate{3, RateMonth}, filter)
 	assert.NoError(t, err)
-	filter, err = DecodeSamplingFreq("6q")
-	assert.Equal(t, SamplingFreq{6, FreqQuarter}, filter)
+	filter, err = DecodeSamplingRate("6q")
+	assert.Equal(t, SamplingRate{6, RateQuarter}, filter)
 	assert.NoError(t, err)
-	filter, err = DecodeSamplingFreq("2y")
-	assert.Equal(t, SamplingFreq{2, FreqYear}, filter)
+	filter, err = DecodeSamplingRate("2y")
+	assert.Equal(t, SamplingRate{2, RateYear}, filter)
 	assert.NoError(t, err)
-	filter, err = DecodeSamplingFreq("")
+	filter, err = DecodeSamplingRate("")
 	assert.Error(t, err)
-	filter, err = DecodeSamplingFreq("1")
+	filter, err = DecodeSamplingRate("1")
 	assert.Error(t, err)
-	filter, err = DecodeSamplingFreq("m")
+	filter, err = DecodeSamplingRate("m")
 	assert.Error(t, err)
-	filter, err = DecodeSamplingFreq("cy")
+	filter, err = DecodeSamplingRate("cy")
 	assert.Error(t, err)
 }
 
@@ -48,11 +49,19 @@ func TestFilterCommitInfo(t *testing.T) {
 }*/
 
 func TestReplaceRawCmdTemplates(t *testing.T) {
-	str := expandExecRawCmd("tool command {path} --name {name}.{commit.count}.{commit.id}.json --testflag 'with space'",
+	str := expandExecRawCmd("tool command {path} --name {name}.{sample.number}.{sample.date}.{commit.number}.{commit.id}.{sample.rate}.json --testflag 'with space'",
 		"./testPath/testProjet",
 		ProjectName("testprojet"),
-		types.CommitInfo{Number: 3, CommitID: "testingShaOfCommit"})
-	assert.Equal(t, "tool command ./testPath/testProjet --name testprojet.3.testingShaOfCommit.json --testflag 'with space'", str)
+		types.CommitInfo{Number: 3, CommitID: "testingShaOfCommit"},
+		SamplingRate{
+			Value: 1,
+			Unit:  RateWeek,
+		},
+		types.SampleInfo{
+			Number:   1,
+			DateTime: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.Local),
+		})
+	assert.Equal(t, "tool command ./testPath/testProjet --name testprojet.1.2000-01-01.3.testingShaOfCommit.1w.json --testflag 'with space'", str)
 }
 
 func TestSplitCommandArgs(t *testing.T) {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -81,8 +82,16 @@ func getFilePath(r repos.Repository, fileName string) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
+	if cwd == r.GetAbsPath() {
+		cwd = path.Dir(cwd)
+	}
 	repoName := r.Name()
-	cxRootDir := filepath.Join(cwd, repoName.String()+".cxray")
+	var cxRootDir string
+	if !strings.HasSuffix(strings.TrimSuffix(cwd, string(filepath.Separator)), repoName.String()+".cxray") {
+		cxRootDir = filepath.Join(cwd, repoName.String()+".cxray")
+	} else {
+		cxRootDir = cwd
+	}
 
 	filePath := filepath.Join(cxRootDir, fileName)
 	filePath, err = filepath.Abs(filePath)

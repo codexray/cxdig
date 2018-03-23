@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var quietMode bool
+
 var rootCmd = &cobra.Command{
 	Use:   "cxdig",
 	Short: "CodeXray tool to scan source code repositories.",

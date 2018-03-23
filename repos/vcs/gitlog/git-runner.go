@@ -66,11 +66,11 @@ func RunGitCommandOnDir(repoPath string, args []string, setDiff bool) ([]string,
 }
 
 func CheckOutOnCommit(repoPath string, IDCommit string) ([]string, error) {
-	return RunGitCommandOnDir(repoPath, []string{"checkout", "-f", IDCommit}, true)
+	return RunGitCommandOnDir(repoPath, []string{"checkout", "-f", IDCommit}, false)
 }
 
 func ClearUntrackedFiles(repoPath string) error {
-	_, err := RunGitCommandOnDir(repoPath, []string{"clean", "-fd"}, true)
+	_, err := RunGitCommandOnDir(repoPath, []string{"clean", "-fdx"}, false)
 	if err != nil {
 		return err
 	}

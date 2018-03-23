@@ -29,8 +29,8 @@ func NewGitRepository(path string) *GitRepository {
 	}
 }
 
-func (r *GitRepository) ConstructSampleList(freq repos.SamplingFreq, commits []types.CommitInfo, limit int, sampleFileName string) error {
-	samples := repos.FilterCommitsByStep(commits, freq, limit)
+func (r *GitRepository) ConstructSampleList(rate repos.SamplingRate, commits []types.CommitInfo, limit int, sampleFileName string) error {
+	samples := repos.FilterCommitsByStep(commits, rate, limit)
 	if len(commits) == 0 {
 		logrus.Warn("The filtered list of commits to sample is empty: doing nothing")
 		return nil
@@ -38,32 +38,35 @@ func (r *GitRepository) ConstructSampleList(freq repos.SamplingFreq, commits []t
 
 	core.Info("Sampling repository...")
 	if sampleFileName == "" {
-		sampleFileName = "samples." + freq.String() + ".json"
+		sampleFileName = "samples." + rate.String() + ".json"
 	}
 	return output.WriteJSONFile(r, sampleFileName, samples)
 }
 
-func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, freq repos.SamplingFreq, commits []types.CommitInfo, sampleFileName string, p core.Progress) error {
+func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, rate repos.SamplingRate, commits []types.CommitInfo, sampleFileName string, p core.Progress) error {
 	core.Info("Checking repository status...")
 	if !CheckGitStatus(r.absPath) {
 		return errors.New("the git repository is not clean, commit your changes or track untracked files and retry")
 	}
 	var samples []types.SampleInfo
 	if sampleFileName == "" {
-		sampleFileName = "samples." + freq.String() + ".json"
+		sampleFileName = "samples." + rate.String() + ".json"
 	}
 	if err := output.ReadJSONFile(r, sampleFileName, &samples); err != nil {
 		return errors.Wrap(err, "failed to load sample file")
 	}
-	return r.walkCommitsWithCommand(tool, commits, samples, p)
+	return r.walkCommitsWithCommand(tool, commits, samples, p, rate)
 }
 
 func (r *GitRepository) Name() repos.ProjectName {
 	name := filepath.Base(r.absPath)
 	return repos.ProjectName(name)
 }
+func (r *GitRepository) GetAbsPath() string {
+	return r.absPath
+}
 
-func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits []types.CommitInfo, samples []types.SampleInfo, p core.Progress) error {
+func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits []types.CommitInfo, samples []types.SampleInfo, p core.Progress, rate repos.SamplingRate) error {
 	currentBranch, err := r.GetCurrentBranch()
 	if err != nil {
 		return err
@@ -97,14 +100,20 @@ func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits 
 		for j := commitIndex; j < len(commits); j++ {
 			if commits[j].CommitID == sample.CommitID {
 				CheckOutOnCommit(r.absPath, commits[j].CommitID.String())
+				if err != nil {
+					return err
+				}
+				if err = ClearUntrackedFiles(r.absPath); err != nil {
+					return err
+				}
 
-				cmd := tool.BuildCmd(r.absPath, r.Name(), commits[j])
+				cmd := tool.BuildCmd(r.absPath, r.Name(), commits[j], rate, sample)
 				var stderr bytes.Buffer
 				cmd.Stderr = &stderr
 
 				// TODO: evaluate CombinedOutput()
 				out, err := cmd.Output()
-				if err != nil {
+				if err != nil && !p.IsCancelled() {
 					// TODO: better error message + use defer on ResetOnCommit
 					return errors.Wrap(err, "something wrong happen when running command on commit "+commits[j].CommitID.String())
 				}
@@ -143,4 +152,17 @@ func (r *GitRepository) GetCurrentBranch() (string, error) {
 		return "", errors.New("Current branch could not be found, maybe you are in 'detached HEAD' state?")
 	}
 	return currentBranch, nil
+}
+
+func (r *GitRepository) CheckIgnoredFilesExistence() error {
+	output, err := RunGitCommandOnDir(r.absPath, []string{"clean", "-ndX"}, false)
+	if err != nil {
+		return err
+	}
+	if len(output) < 1 || output[0] == "" {
+		return nil
+	} else {
+		return errors.New("Gitignored files are presents in the repo given, they will be deleted during the sampling process. Track and commit them or use -f/--force to run anyway")
+	}
+	return nil
 }

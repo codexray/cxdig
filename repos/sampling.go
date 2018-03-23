@@ -5,14 +5,14 @@ import (
 	"time"
 )
 
-func FilterCommitsByStep(commits []types.CommitInfo, freq SamplingFreq, limit int) []types.SampleInfo {
+func FilterCommitsByStep(commits []types.CommitInfo, rate SamplingRate, limit int) []types.SampleInfo {
 	if limit == 0 {
 		limit = len(commits)
 	}
 	rtn := []types.SampleInfo{}
 	sampleNumber := 1
-	if freq.Unit == FreqCommit {
-		for i := 0; i < limit*freq.Value && i < len(commits); i += freq.Value {
+	if rate.Unit == RateCommit {
+		for i := 0; i < limit*rate.Value && i < len(commits); i += rate.Value {
 			rtn = append(rtn, types.SampleInfo{
 				Number:   types.SampleID(sampleNumber),
 				DateTime: commits[i].DateTime,
@@ -21,13 +21,13 @@ func FilterCommitsByStep(commits []types.CommitInfo, freq SamplingFreq, limit in
 			sampleNumber++
 		}
 	} else {
-		step := bringToLastMoment(commits[0].DateTime, freq.Unit)
+		step := bringToLastMoment(commits[0].DateTime, rate.Unit)
 		j := 0
 		for i := 0; j <= limit && i < len(commits); i++ {
 			if commits[i].DateTime.Before(step) {
 				var t time.Time
 				firstAdded := 0
-				for t = step; commits[i].DateTime.Before(t); t = getNextStep(t, freq) {
+				for t = step; commits[i].DateTime.Before(t); t = getNextStep(t, rate) {
 					temp := types.SampleInfo{
 						Number:   types.SampleID(sampleNumber),
 						DateTime: t,
@@ -49,38 +49,38 @@ func FilterCommitsByStep(commits []types.CommitInfo, freq SamplingFreq, limit in
 	return rtn
 }
 
-func getNextStep(step time.Time, freq SamplingFreq) time.Time {
-	switch freq.Unit {
-	case FreqDay:
-		step = step.AddDate(0, 0, -freq.Value)
-	case FreqWeek:
-		step = step.AddDate(0, 0, -freq.Value*8)
-	case FreqMonth:
-		for i := 0; i < freq.Value; i++ {
+func getNextStep(step time.Time, rate SamplingRate) time.Time {
+	switch rate.Unit {
+	case RateDay:
+		step = step.AddDate(0, 0, -rate.Value)
+	case RateWeek:
+		step = step.AddDate(0, 0, -rate.Value*8)
+	case RateMonth:
+		for i := 0; i < rate.Value; i++ {
 			temp := step.Month()
 			step = step.AddDate(0, -1, 0)
 			for step.Month() == temp {
 				step = step.AddDate(0, 0, -1)
 			}
 		}
-	case FreqQuarter:
-		for i := 0; i < freq.Value*3; i++ {
+	case RateQuarter:
+		for i := 0; i < rate.Value*3; i++ {
 			temp := step.Month()
 			step = step.AddDate(0, -1, 0)
 			for step.Month() == temp {
 				step = step.AddDate(0, 0, -1)
 			}
 		}
-	case FreqYear:
-		step = step.AddDate(-freq.Value, 0, 0)
+	case RateYear:
+		step = step.AddDate(-rate.Value, 0, 0)
 	}
-	return bringToLastMoment(step, freq.Unit)
+	return bringToLastMoment(step, rate.Unit)
 }
 
-func bringToLastMoment(t time.Time, freqUnit FreqUnit) time.Time {
+func bringToLastMoment(t time.Time, rateUnit RateUnit) time.Time {
 	t = t.Add((time.Hour * time.Duration(23-t.Hour())) + (time.Minute * time.Duration(59-t.Minute())) + (time.Second * time.Duration(59-t.Second())))
 
-	if freqUnit == FreqWeek {
+	if rateUnit == RateWeek {
 		i := 0
 		for t.AddDate(0, 0, i).Weekday() == time.Weekday(7) {
 			i++
@@ -88,7 +88,7 @@ func bringToLastMoment(t time.Time, freqUnit FreqUnit) time.Time {
 		t = t.AddDate(0, 0, i)
 	}
 
-	if freqUnit == FreqYear {
+	if rateUnit == RateYear {
 		i := 0
 		for t.AddDate(0, i, 0).Month() != time.Month(12) {
 			i++
@@ -96,7 +96,7 @@ func bringToLastMoment(t time.Time, freqUnit FreqUnit) time.Time {
 		t = t.AddDate(0, i, 0)
 	}
 
-	if freqUnit == FreqQuarter {
+	if rateUnit == RateQuarter {
 		i := 0
 		for t.AddDate(0, i, 0).Month()%3 != 0 {
 			i++
@@ -104,7 +104,7 @@ func bringToLastMoment(t time.Time, freqUnit FreqUnit) time.Time {
 		t = t.AddDate(0, i, 0)
 	}
 
-	if freqUnit == FreqMonth || freqUnit == FreqQuarter || freqUnit == FreqYear {
+	if rateUnit == RateMonth || rateUnit == RateQuarter || rateUnit == RateYear {
 		i := 0
 		for t.AddDate(0, 0, i).Month() == t.Month() {
 			i++
