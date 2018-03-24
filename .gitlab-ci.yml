@@ -47,26 +47,26 @@ build_dist:
     - LDFLAGS="$LDFLAGS -X $CI_PROJECT_PATH/cmd.buildDate=`date +%Y.%m.%d`"
     # multiple builds
     - go get github.com/mitchellh/gox
-    - gox -arch "amd64 arm" -os="!netbsd" -ldflags "$LDFLAGS" -output "dist/{{.OS}}.{{.Arch}}/${CI_PROJECT_NAME}"
-    - ./dist/linux.amd64/cxdig version
+    - gox -arch "amd64 arm" -os="!netbsd" -ldflags "$LDFLAGS" -output "dist/${CI_PROJECT_NAME}_{{.OS}}_{{.Arch}}"
+    - ./dist/cxdig_linux_amd64 version
   artifacts:
     expire_in: 1 week
     paths:
       - dist/
 
-deploy:
+upload_github:
   stage: deploy
   <<: *gobuildenv
   dependencies:
     - build_dist
   script:
     # check version is OK
-    - VERSION=$(./dist/linux.amd64/cxdig version -q)
+    - VERSION=$(./dist/cxdig_linux_amd64 version -q)
     - '[[ "$VERSION" =~ ^[0-9.]+$ ]] || (echo "Invalid version: $VERSION"; exit 1)'
     - '[ "$VERSION" == "$CI_COMMIT_REF_NAME" ]'
     # publish on GitHub
     - '[ ! -z "$GITHUB_TOKEN" ]'
     - go get github.com/tcnksm/ghr
-    - ghr -t $GITHUB_TOKEN -u "codexray" -r $CI_PROJECT_NAME --replace $VERSION dist/
+    - ghr -t $GITHUB_TOKEN -u $CI_PROJECT_NAMESPACE -r $CI_PROJECT_NAME --replace $VERSION dist/
   only:
     - tags
