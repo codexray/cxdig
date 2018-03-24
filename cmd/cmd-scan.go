@@ -16,26 +16,18 @@ var scanCmd = &cobra.Command{
 	Use:   "scan",
 	Short: "Collect data from a given repository",
 	Long:  "Scan a given repository for its commits and source files",
-	RunE:  cmdScanProject,
+	Run:   cmdScanProject,
 }
 
-func cmdScanProject(cmd *cobra.Command, args []string) error {
+func cmdScanProject(cmd *cobra.Command, args []string) {
 	path, err := getRepositoryPathFromCmdArgs(args)
-	if err != nil {
-		return err
-	}
+	core.DieOnError(err)
 
 	repo, err := vcs.OpenRepository(path)
-	if err != nil {
-		core.Error(err)
-		return nil
-	}
+	core.DieOnError(err)
 
 	err = extractRepoCommitsAndSaveResult(repo)
-	if err != nil {
-		core.Error(err)
-	}
-	return nil
+	core.DieOnError(err)
 }
 
 func extractRepoCommitsAndSaveResult(repo repos.Repository) error {
