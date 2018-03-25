@@ -32,7 +32,7 @@ func cmdScanProject(cmd *cobra.Command, args []string) {
 
 func extractRepoCommitsAndSaveResult(repo repos.Repository) error {
 	r := config.NewFileTypeRegistry()
-	core.Infof("Processing project '%s'...", repo.Name())
+	core.Infof("Extracting commits from repository '%s'...", repo.Name())
 
 	commits, err := repo.ExtractCommits()
 	if err != nil {
@@ -44,7 +44,6 @@ func extractRepoCommitsAndSaveResult(repo repos.Repository) error {
 	}
 
 	ref := referential.BuildProjectReferential(commits, r)
-	core.Infof("Saving results to JSON")
 	if err := output.WriteJSONFile(repo, "referential.json", ref); err != nil {
 		return errors.Wrap(err, "failed to save referential to JSON file")
 	}

@@ -2,24 +2,17 @@ package gitlog
 
 import (
 	"codexray/cxdig/types"
-	"os"
 	"strings"
-
-	"errors"
 
 	"github.com/sirupsen/logrus"
 )
 
 func ExtractCommitsFromRepository(repoPath string) ([]types.CommitInfo, error) {
-	if _, err := os.Stat(repoPath); err != nil {
-		logrus.WithField("path", repoPath).Error("Failed to find the project repository")
-		return nil, errors.New("invalid repository path")
+	lines, err := RunFullGitLogExtractionWithoutFileDiff(repoPath)
+	if err != nil {
+		return nil, err
 	}
-
-	lines := RunFullGitLogExtractionWithoutFileDiff(repoPath)
-	commits := parseFullGitLogWithoutDiff(lines)
-
-	return commits, nil
+	return parseFullGitLogWithoutDiff(lines), nil
 }
 
 func assignCommitNumbers(commits []types.CommitInfo) []types.CommitInfo {
@@ -33,29 +26,17 @@ func assignCommitNumbers(commits []types.CommitInfo) []types.CommitInfo {
 func parseFullGitLogWithoutDiff(lines []string) []types.CommitInfo {
 	commits := make([]types.CommitInfo, 0, 1000)
 
-	commitPathFilter := ""
-	nbFilteredCommits := 0
-
 	for len(lines) > 0 && lines[0] != "" {
 		commit, remaining := extractNextCommitInfo(lines)
-		if commit = filterCommitInfo(commit, commitPathFilter); commit != nil {
+		emptyPathFilter := ""
+		if commit = filterCommitInfo(commit, emptyPathFilter); commit != nil {
 			commits = append(commits, *commit)
-		} else {
-			nbFilteredCommits++
 		}
 
 		lines = remaining
 	}
 
-	commits = assignCommitNumbers(commits)
-
-	if nbFilteredCommits > 0 {
-		logrus.WithFields(logrus.Fields{
-			"filter":     commitPathFilter,
-			"nb-ignored": nbFilteredCommits,
-		}).Info("Some commits were ignored according to 'project_root' setting")
-	}
-	return commits
+	return assignCommitNumbers(commits)
 }
 
 // filter file changes that do not belong to given project root (if any)

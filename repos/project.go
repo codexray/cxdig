@@ -14,10 +14,14 @@ func (p *ProjectName) String() string {
 
 // Repository interface is used to manipulate a source code repository versioned under a particular CVS
 type Repository interface {
+	// Name returns the (short) name of the repository
 	Name() ProjectName
-	ConstructSampleList(rate SamplingRate, commits []types.CommitInfo, limit int, sampleFileName string) error
-	SampleWithCmd(tool ExternalTool, rate SamplingRate, commits []types.CommitInfo, sampleFileName string, p core.Progress) error
-	ExtractCommits() ([]types.CommitInfo, error)
+	// GetAbsPath returns the absolute path to the repository root folder
 	GetAbsPath() string
-	CheckIgnoredFilesExistence() error
+	// SampleWithCmd runs a sampling operation with the given tool and sampling list
+	SampleWithCmd(tool ExternalTool, rate SamplingRate, commits []types.CommitInfo, samples []types.SampleInfo, p core.Progress) error
+	// ExtractCommits extract information about all the commits in the repository
+	ExtractCommits() ([]types.CommitInfo, error)
+	// HasLocalModifications returns true if the repository has local modification (inclusind non versioned files)
+	HasLocalModifications() (bool, error)
 }

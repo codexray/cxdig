@@ -34,20 +34,6 @@ func TestFindFilterType(t *testing.T) {
 	assert.Error(t, err)
 }
 
-/*
-func TestFilterCommitInfo(t *testing.T) {
-	createTestingGitRepo(t)
-
-	commits, err := ExtractCommitsFromRepository(repoPath)
-	assert.NoError(t, err)
-	for i, commit := range commits {
-		filterCommitInfo(&commit, repoPath)
-		assert.Equal(t, commits[i], commit)
-	}
-
-	destroyTestingGitRepo(t)
-}*/
-
 func TestReplaceRawCmdTemplates(t *testing.T) {
 	str := expandExecRawCmd("tool command {path} --name {name}.{sample.number}.{sample.date}.{commit.number}.{commit.id}.{sample.rate}.json --testflag 'with space'",
 		"./testPath/testProjet",
