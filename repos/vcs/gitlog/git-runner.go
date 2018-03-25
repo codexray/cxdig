@@ -13,13 +13,13 @@ import (
 
 // RunFullGitLogExtractionWithoutFileDiff extracts the full git log very quickly but without
 // querying the details of the source code changes (which are costly to retrieve)
-func RunFullGitLogExtractionWithoutFileDiff(repoPath string) []string {
+func RunFullGitLogExtractionWithoutFileDiff(repoPath string) ([]string, error) {
 	args := []string{"log", "--name-status", "--date=rfc", "--all"}
 	rtn, err := RunGitCommandOnDir(repoPath, args, true)
 	if err != nil {
-		logrus.Panic(errors.Wrap(err, "failed to execute git command"))
+		return nil, errors.Wrap(err, "failed to execute git command")
 	}
-	return rtn
+	return rtn, nil
 }
 
 // RunSingleCommitDiffExtraction extracts the git log for a single commit with inclusion of the diff

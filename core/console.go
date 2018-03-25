@@ -2,6 +2,9 @@ package core
 
 import (
 	"fmt"
+	"os"
+
+	"github.com/fatih/color"
 )
 
 var quietMode bool
@@ -30,14 +33,25 @@ func Infof(format string, a ...interface{}) {
 	}
 }
 
+// Warn displays a warning message to the user
 func Warn(msg string) {
-	fmt.Println("Warning: " + msg)
-}
-func Warnf(format string, a ...interface{}) {
-	fmt.Println("Warning: " + fmt.Sprintf(format, a...))
+	color.Yellow("Warning: " + msg)
 }
 
-// Error reports an error to the user
+// Warnf displays a fomatted warning message to the user
+func Warnf(format string, a ...interface{}) {
+	Warn(fmt.Sprintf(format, a...))
+}
+
+// Error displays an error message to the user
 func Error(err error) {
-	fmt.Println("Error: " + err.Error())
+	color.Red("Error: " + err.Error())
+}
+
+// DieOnError check for any error and if so displays it before exiting with an error code
+func DieOnError(err error) {
+	if err != nil {
+		Error(err)
+		os.Exit(1)
+	}
 }

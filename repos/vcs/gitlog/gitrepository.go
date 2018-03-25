@@ -3,7 +3,6 @@ package gitlog
 import (
 	"bytes"
 	"codexray/cxdig/core"
-	"codexray/cxdig/output"
 	"codexray/cxdig/repos"
 	"codexray/cxdig/types"
 	"path/filepath"
@@ -21,7 +20,7 @@ type GitRepository struct {
 func NewGitRepository(path string) *GitRepository {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
-		panic(err)
+		core.DieOnError(err)
 	}
 
 	return &GitRepository{
@@ -29,31 +28,10 @@ func NewGitRepository(path string) *GitRepository {
 	}
 }
 
-func (r *GitRepository) ConstructSampleList(rate repos.SamplingRate, commits []types.CommitInfo, limit int, sampleFileName string) error {
-	samples := repos.FilterCommitsByStep(commits, rate, limit)
-	if len(commits) == 0 {
-		logrus.Warn("The filtered list of commits to sample is empty: doing nothing")
-		return nil
-	}
-
-	core.Info("Sampling repository...")
-	if sampleFileName == "" {
-		sampleFileName = "samples." + rate.String() + ".json"
-	}
-	return output.WriteJSONFile(r, sampleFileName, samples)
-}
-
-func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, rate repos.SamplingRate, commits []types.CommitInfo, sampleFileName string, p core.Progress) error {
+func (r *GitRepository) SampleWithCmd(tool repos.ExternalTool, rate repos.SamplingRate, commits []types.CommitInfo, samples []types.SampleInfo, p core.Progress) error {
 	core.Info("Checking repository status...")
 	if !CheckGitStatus(r.absPath) {
 		return errors.New("the git repository is not clean, commit your changes or track untracked files and retry")
-	}
-	var samples []types.SampleInfo
-	if sampleFileName == "" {
-		sampleFileName = "samples." + rate.String() + ".json"
-	}
-	if err := output.ReadJSONFile(r, sampleFileName, &samples); err != nil {
-		return errors.Wrap(err, "failed to load sample file")
 	}
 	return r.walkCommitsWithCommand(tool, commits, samples, p, rate)
 }
@@ -67,7 +45,7 @@ func (r *GitRepository) GetAbsPath() string {
 }
 
 func (r *GitRepository) walkCommitsWithCommand(tool repos.ExternalTool, commits []types.CommitInfo, samples []types.SampleInfo, p core.Progress, rate repos.SamplingRate) error {
-	currentBranch, err := r.GetCurrentBranch()
+	currentBranch, err := r.getCurrentBranch()
 	if err != nil {
 		return err
 	}
@@ -136,11 +114,10 @@ func (r *GitRepository) ExtractCommits() ([]types.CommitInfo, error) {
 	// TODO: check error handling
 	commits = GetGitCommitsParents(commits, r.absPath)
 	commits = FindMainParentOfCommits(commits, r.absPath)
-
 	return commits, nil
 }
 
-func (r *GitRepository) GetCurrentBranch() (string, error) {
+func (r *GitRepository) getCurrentBranch() (string, error) {
 	rtn, _ := RunGitCommandOnDir(r.absPath, []string{"branch"}, false)
 	currentBranch := ""
 	for _, branch := range rtn {
@@ -154,15 +131,13 @@ func (r *GitRepository) GetCurrentBranch() (string, error) {
 	return currentBranch, nil
 }
 
-func (r *GitRepository) CheckIgnoredFilesExistence() error {
+func (r *GitRepository) HasLocalModifications() (bool, error) {
 	output, err := RunGitCommandOnDir(r.absPath, []string{"clean", "-ndX"}, false)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if len(output) < 1 || output[0] == "" {
-		return nil
-	} else {
-		return errors.New("Gitignored files are presents in the repo given, they will be deleted during the sampling process. Track and commit them or use -f/--force to run anyway")
+		return false, nil
 	}
-	return nil
+	return true, nil
 }

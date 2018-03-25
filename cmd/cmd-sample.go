@@ -7,7 +7,9 @@ import (
 	"codexray/cxdig/repos"
 	"codexray/cxdig/repos/vcs"
 	"codexray/cxdig/types"
-	"errors"
+	"fmt"
+
+	"github.com/pkg/errors"
 
 	"github.com/spf13/cobra"
 )
@@ -16,7 +18,7 @@ var sampleCmd = &cobra.Command{
 	Use:   "sample",
 	Short: "Run a sampling opoeration at a given rate on the repository",
 	Long:  "Run a sampling tool on a repository at regular time points in its history (sampling rate)",
-	RunE:  cmdSample,
+	Run:   cmdSample,
 }
 
 const defaultSamplingRate = "1w"
@@ -47,87 +49,84 @@ func (opts *execOptions) checkFlagCombination() error {
 
 var execOpts execOptions
 
-func cmdSample(cmd *cobra.Command, args []string) error {
-
+func cmdSample(cmd *cobra.Command, args []string) {
+	// TODO: group in a dedicated function
+	err := execOpts.checkFlagCombination()
+	core.DieOnError(err)
+	rate, err := repos.DecodeSamplingRate(execOpts.rate)
+	core.DieOnError(err)
 	path, err := getRepositoryPathFromCmdArgs(args)
-	if err != nil {
-		return err
-	}
-
-	if err = execOpts.checkFlagCombination(); err != nil {
-		return err
-	}
+	core.DieOnError(err)
 
 	repo, err := vcs.OpenRepository(path)
-	if err != nil {
-		core.Error(err)
-		return nil
-	}
+	core.DieOnError(err)
 
-	rate, err := repos.DecodeSamplingRate(execOpts.rate)
-	if err != nil {
-		core.Error(err)
-		return nil
-	}
-
-	if !execOpts.force {
-		err = repo.CheckIgnoredFilesExistence()
-		if err != nil {
-			core.Error(err)
-			return nil
+	hasLocalModif, err := repo.HasLocalModifications()
+	core.DieOnError(err)
+	if hasLocalModif {
+		if execOpts.force {
+			core.Info("Repository has local changes that will be deleted (force mode enabled)")
+		} else {
+			err = errors.New("repository has local changes that would be destroyed by sampling operation (use --force to ignore)")
+			core.DieOnError(err)
 		}
 	}
 
-	tool := repos.NewExternalTool(execOpts.cmd)
+	// if the repo scan was not already done, do it now
+	if !output.FileExists(repo, "commits.json") {
+		err = extractRepoCommitsAndSaveResult(repo)
+		core.DieOnError(err)
+	}
+	commits, err := loadCommitsFromFile(repo, "commits.json")
+	core.DieOnError(err)
 
-	existCommitsFile, err := output.CheckFileExistence(repo, "commits.json")
-	if err != nil {
-		core.Error(err)
-		return nil
-	}
-	if !existCommitsFile {
-		core.Info("Scanning repository...")
-		cmdScanProject(cmd, args)
-	}
-	var commits []types.CommitInfo
-	if err = output.ReadJSONFile(repo, "commits.json", &commits); err != nil {
-		core.Error(err)
-		return nil
-	}
-	commits = repos.SortCommitByDateDecr(commits)
-
-	if execOpts.input == "" {
-		exist, err := output.CheckFileExistence(repo, "samples."+rate.String()+".json")
-		if err != nil {
-			core.Error(err)
-			return nil
-		}
-		if !exist {
-			if err = repo.ConstructSampleList(rate, commits, execOpts.limit, execOpts.output); err != nil {
-				core.Error(err)
-				return nil
-			}
-		}
+	// if we are given a sampling list file, use it
+	var samples []types.SampleInfo
+	if execOpts.input != "" {
+		inputFile := execOpts.input
+		//if !output.FileExists(repo, inputFile) {
+		//	core.DieOnError(errors.New("the file given in input doesn't exists"))
+		//}
+		core.Infof("Loading sampling list from file '%s'", inputFile)
+		err = output.ReadJSONFile(repo, inputFile, &samples)
+		core.DieOnError(errors.Wrap(err, "failed to load sample file"))
 	} else {
-		if exist, _ := output.CheckFileExistence(repo, execOpts.input); !exist {
-			core.Error(errors.New("the file given in input doesn't exists"))
-			return nil
+		// generate default file name if nothing specified
+		outputName := execOpts.output
+		if outputName == "" {
+			outputName = fmt.Sprintf("samples.%s.json", rate.String())
 		}
+
+		core.Infof("Saving sampling list to file '%s'", outputName)
+		samples := repos.FilterCommitsByStep(commits, rate, execOpts.limit)
+		if len(samples) == 0 {
+			core.Warn("the generated sample list is empty")
+		}
+
+		err := output.WriteJSONFile(repo, outputName, samples)
+		core.DieOnError(errors.Wrap(err, "failed to save sampling list"))
 	}
 
-	if commits != nil && execOpts.cmd != "" {
+	// now that we have the sampling list, run the sampling tool
+	if execOpts.cmd != "" {
 		pb := &progress.ProgressBar{}
-		execOpts.input = execOpts.output
-		err = repo.SampleWithCmd(tool, rate, commits, execOpts.input, pb)
-		if err != nil {
-			core.Error(err)
-		}
+		tool := repos.NewExternalTool(execOpts.cmd)
+		core.Info("Sampling repository...")
+		err = repo.SampleWithCmd(tool, rate, commits, samples, pb)
+		core.DieOnError(err)
 	}
-	return nil
+}
+
+func loadCommitsFromFile(repo repos.Repository, fileName string) ([]types.CommitInfo, error) {
+	var commits []types.CommitInfo
+	if err := output.ReadJSONFile(repo, fileName, &commits); err != nil {
+		return nil, err
+	}
+	return repos.SortCommitByDateDecr(commits), nil
 }
 
 func init() {
-	sampleCmd.Flags().IntVarP(&execOpts.limit, "limit", "l", 0, "Maximum number of samples to process")
+	sampleCmd.Flags().IntVarP(&execOpts.limit, "limit", "l", 0, "Maximum number of samples to generate")
 	sampleCmd.Flags().StringVarP(&execOpts.rate, "rate", "r", defaultSamplingRate, "Time difference between two samples (10c, 2d, 1m, 3y, etc.)")
 	sampleCmd.Flags().StringVarP(&execOpts.cmd, "cmd", "c", "", "External command to be executed for each sample")
 	sampleCmd.Flags().StringVarP(&execOpts.input, "input", "i", "", "Existing sample file to be reused rather than generating a new sampling list")

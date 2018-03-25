@@ -5,16 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sirupsen/logrus"
+	"github.com/pkg/errors"
 )
-
-// DieOnError checks for an error and will reports it + die if there is one
-func DieOnError(err error, msg string) {
-	if err != nil {
-		logrus.WithError(err).Error(msg)
-		os.Exit(1)
-	}
-}
 
 func checkDirPathExists(path string) bool {
 	if f, err := os.Stat(path); err == nil {
@@ -35,6 +27,11 @@ func getRepositoryPathFromCmdArgs(args []string) (string, error) {
 		path = args[0]
 	} else {
 		return "", fmt.Errorf("too many arguments")
+	}
+
+	path, err := filepath.Abs(path)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to retrieve absolute path of '%s'", path)
 	}
 
 	// check existence

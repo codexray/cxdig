@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"codexray/cxdig/config"
+	"codexray/cxdig/core"
 	"codexray/cxdig/types"
 )
 
@@ -19,7 +20,7 @@ func (id LocalDirectoryID) Next() LocalDirectoryID {
 
 func BuildProjectReferential(commits []types.CommitInfo, registry *config.FileTypeRegistry) types.ProjectReferential {
 
-	logrus.WithField("nb-commits", len(commits)).Info("Building project referential")
+	core.Info("Building project referential...")
 
 	builder := NewReferentialBuilder(registry)
 	for i := len(commits) - 1; i >= 0; i-- {
