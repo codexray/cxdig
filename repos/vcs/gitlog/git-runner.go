@@ -103,40 +103,14 @@ func GetGitCommitsParents(commits []types.CommitInfo, repopath string) []types.C
 	}
 	for i, commit := range commits {
 		if len(parentMap[commit.CommitID.String()]) > 0 {
+			commits[i].MainParent = parentMap[commit.CommitID.String()][0]
 			if len(parentMap[commit.CommitID.String()]) > 1 {
-				commits[i].Parents = parentMap[commit.CommitID.String()]
-			} else {
-				commits[i].MainParent = parentMap[commit.CommitID.String()][0]
+				for _, p := range parentMap[commit.CommitID.String()] {
+					commits[i].OtherParents = append(commits[i].OtherParents, p)
+				}
 			}
 		}
 	}
-	return commits
-}
-
-func FindMainParentOfCommits(commits []types.CommitInfo, repopath string) []types.CommitInfo {
-	mergeCommits := FindAllMergeCommit(repopath)
-	mainParent := make(map[string]string)
-	for _, commit := range mergeCommits {
-		args := []string{"log", "--oneline", "--first-parent", "-n", "2", "--no-abbrev", commit}
-		rtn, _ := RunGitCommandOnDir(repopath, args, true)
-		if len(rtn) < 2 {
-			logrus.Warning("A merge commit has no parent")
-		} else {
-			splittedLine := strings.Split(rtn[1], " ")
-			if len(splittedLine) < 1 {
-				logrus.Warning("A commit has no commit message")
-			} else {
-				mainParent[commit] = splittedLine[0]
-			}
-		}
-	}
-
-	for i, commit := range commits {
-		if mainParent[commit.CommitID.String()] != "" {
-			commits[i].MainParent = mainParent[commit.CommitID.String()]
-		}
-	}
-
 	return commits
 }
 
