@@ -104,11 +104,7 @@ func GetGitCommitsParents(commits []types.CommitInfo, repopath string) []types.C
 	for i, commit := range commits {
 		if len(parentMap[commit.CommitID.String()]) > 0 {
 			commits[i].MainParent = parentMap[commit.CommitID.String()][0]
-			if len(parentMap[commit.CommitID.String()]) > 1 {
-				for _, p := range parentMap[commit.CommitID.String()] {
-					commits[i].OtherParents = append(commits[i].OtherParents, p)
-				}
-			}
+			commits[i].Parents = parentMap[commit.CommitID.String()]
 		}
 	}
 	return commits

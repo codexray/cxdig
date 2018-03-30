@@ -88,13 +88,3 @@ func TestFindAllMergeCommit(t *testing.T) {
 	assert.Len(t, FindAllMergeCommit(repoPath), 0)
 	destroyTestingGitRepo(t)
 }
-
-func TestFindMainParentOfCommits(t *testing.T) {
-	createTestingGitRepo(t)
-	commits, _ := ExtractCommitsFromRepository(repoPath)
-	commits2 := FindMainParentOfCommits(commits, repoPath)
-	for i, _ := range commits {
-		assert.Equal(t, commits[i], commits2[i])
-	}
-	destroyTestingGitRepo(t)
-}

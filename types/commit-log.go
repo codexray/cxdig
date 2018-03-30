@@ -40,13 +40,13 @@ func (id *CommitID) String() string {
 
 // CommitInfo contains details about a single commit
 type CommitInfo struct {
-	Number       int          `json:"number"`
-	CommitID     CommitID     `json:"commitID"`
-	Author       AuthorInfo   `json:"author"`
-	DateTime     time.Time    `json:"date"`
-	IsMerge      bool         `json:"isMerge,omitempty"`
-	Message      string       `json:"message,omitempty"`
-	Changes      []FileChange `json:"changes,omitempty"`
-	MainParent   string       `json:"mainParent,omitempty"`
-	OtherParents []string     `json:"otherParents,omitempty"`
+	Number     int          `json:"number"`
+	CommitID   CommitID     `json:"commitID"`
+	Author     AuthorInfo   `json:"author"`
+	DateTime   time.Time    `json:"date"`
+	IsMerge    bool         `json:"isMerge,omitempty"`
+	Message    string       `json:"message,omitempty"`
+	Changes    []FileChange `json:"changes,omitempty"`
+	MainParent string       `json:"mainParent,omitempty"`
+	Parents    []string     `json:"parents,omitempty"`
 }
