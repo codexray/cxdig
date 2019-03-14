@@ -113,7 +113,7 @@ func (r *GitRepository) ExtractCommits() ([]types.CommitInfo, error) {
 
 	// TODO: check error handling
 	commits = GetGitCommitsParents(commits, r.absPath)
-	commits = FindMainParentOfCommits(commits, r.absPath)
+
 	return commits, nil
 }
 
